@@ -1,0 +1,26 @@
+export type Platform = 'Instagram' | 'YouTube Shorts';
+export type Tone = 'Funny' | 'Emotional' | 'Motivational' | 'Storytelling' | 'Shocking';
+export type Language = 'Hindi' | 'English' | 'Hinglish';
+export type Duration = '15 sec' | '30 sec' | '60 sec';
+export type ContentType = 'Story' | 'Facts' | 'Motivation' | 'Comedy' | 'Educational';
+export type HookType = 'Question' | 'Shock' | 'Relatable' | 'Bold';
+
+export interface ScriptInput {
+  topic: string;
+  platform: Platform;
+  tone: Tone;
+  audience?: string;
+  language: Language;
+  duration: Duration;
+  contentType: ContentType;
+  hookType: HookType;
+}
+
+export interface ScriptOutput {
+  hook: string;
+  script: string;
+  titles: string[];
+  cta: string;
+  keywords: string[];
+  hashtags: string[];
+}

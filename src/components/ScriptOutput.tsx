@@ -1,0 +1,148 @@
+import { useState } from 'react';
+import { motion } from 'motion/react';
+import { 
+  Copy, 
+  Check, 
+  Hash, 
+  Key, 
+  Layout, 
+  MessageCircle, 
+  Type as TypeIcon, 
+  Sparkles 
+} from 'lucide-react';
+import { ScriptOutput as ScriptOutputType } from '../types';
+
+interface ScriptOutputProps {
+  output: ScriptOutputType;
+}
+
+export default function ScriptOutput({ output }: ScriptOutputProps) {
+  const [copiedSection, setCopiedSection] = useState<string | null>(null);
+
+  const copyToClipboard = (text: string, section: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedSection(section);
+    setTimeout(() => setCopiedSection(null), 2000);
+  };
+
+  const CopyButton = ({ text, section }: { text: string; section: string }) => (
+    <button
+      onClick={() => copyToClipboard(text, section)}
+      className="p-2 hover:bg-slate-100 rounded-lg transition-colors text-slate-400 hover:text-indigo-600"
+      title="Copy to clipboard"
+    >
+      {copiedSection === section ? <Check className="w-5 h-5 text-green-500" /> : <Copy className="w-5 h-5" />}
+    </button>
+  );
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      className="space-y-8"
+    >
+      {/* Hook Section */}
+      <div className="bg-white p-6 rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2 text-indigo-600 font-bold">
+            <Sparkles className="w-5 h-5" />
+            <span>THE HOOK</span>
+          </div>
+          <CopyButton text={output.hook} section="hook" />
+        </div>
+        <p className="text-xl font-bold text-slate-800 leading-relaxed italic">
+          "{output.hook}"
+        </p>
+      </div>
+
+      {/* Script Section */}
+      <div className="bg-white p-6 rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2 text-indigo-600 font-bold">
+            <Layout className="w-5 h-5" />
+            <span>FULL SCRIPT</span>
+          </div>
+          <CopyButton text={output.script} section="script" />
+        </div>
+        <div className="">
+          <p className="whitespace-pre-wrap text-slate-700 leading-relaxed font-medium">
+            {output.script}
+          </p>
+        </div>
+      </div>
+
+      {/* Titles Section */}
+      <div className="bg-white p-6 rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2 text-indigo-600 font-bold">
+            <TypeIcon className="w-5 h-5" />
+            <span>VIRAL TITLES</span>
+          </div>
+          <CopyButton text={output.titles.join('\n')} section="titles" />
+        </div>
+        <ul className="space-y-3">
+          {output.titles.map((title, i) => (
+            <li key={i} className="flex items-start gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100 text-slate-700 font-semibold">
+              <span className="flex-shrink-0 w-6 h-6 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center text-xs">
+                {i + 1}
+              </span>
+              {title}
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      {/* CTA Section */}
+      <div className="bg-white p-6 rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2 text-indigo-600 font-bold">
+            <MessageCircle className="w-5 h-5" />
+            <span>CALL TO ACTION</span>
+          </div>
+          <CopyButton text={output.cta} section="cta" />
+        </div>
+        <p className="text-slate-700 font-medium">
+          {output.cta}
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Keywords Section */}
+        <div className="bg-white p-6 rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2 text-indigo-600 font-bold">
+              <Key className="w-5 h-5" />
+              <span>SEO KEYWORDS</span>
+            </div>
+            <CopyButton text={output.keywords.join(', ')} section="keywords" />
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {output.keywords.map((kw, i) => (
+              <span key={i} className="px-3 py-1 bg-indigo-50 text-indigo-600 rounded-full text-sm font-medium">
+                {kw}
+              </span>
+            ))}
+          </div>
+        </div>
+
+        {/* Hashtags Section */}
+        <div className="bg-white p-6 rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2 text-indigo-600 font-bold">
+              <Hash className="w-5 h-5" />
+              <span>HASHTAGS</span>
+            </div>
+            <CopyButton text={output.hashtags.join(' ')} section="hashtags" />
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {output.hashtags.map((tag, i) => (
+              <span key={i} className="text-indigo-500 font-bold hover:text-indigo-600 cursor-pointer">
+                {tag.startsWith('#') ? tag : `#${tag}`}
+              </span>
+            ))}
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
