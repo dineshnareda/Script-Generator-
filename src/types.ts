@@ -24,3 +24,10 @@ export interface ScriptOutput {
   keywords: string[];
   hashtags: string[];
 }
+
+export interface SavedScript {
+  id: string;
+  timestamp: number;
+  input: ScriptInput;
+  output: ScriptOutput;
+}

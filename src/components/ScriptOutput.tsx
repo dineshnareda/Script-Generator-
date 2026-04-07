@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion } from 'motion/react';
+import ReactMarkdown from 'react-markdown';
 import { 
   Copy, 
   Check, 
@@ -8,16 +9,66 @@ import {
   Layout, 
   MessageCircle, 
   Type as TypeIcon, 
-  Sparkles 
+  Sparkles,
+  Edit2,
+  Save,
+  X,
+  Bold,
+  Italic,
+  List
 } from 'lucide-react';
 import { ScriptOutput as ScriptOutputType } from '../types';
 
 interface ScriptOutputProps {
   output: ScriptOutputType;
+  onUpdate: (updatedOutput: ScriptOutputType) => void;
 }
 
-export default function ScriptOutput({ output }: ScriptOutputProps) {
+export default function ScriptOutput({ output, onUpdate }: ScriptOutputProps) {
   const [copiedSection, setCopiedSection] = useState<string | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedScript, setEditedScript] = useState(output.script);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    setEditedScript(output.script);
+    setIsEditing(false);
+  }, [output]);
+
+  const handleSave = () => {
+    onUpdate({
+      ...output,
+      script: editedScript
+    });
+    setIsEditing(false);
+  };
+
+  const handleCancel = () => {
+    setEditedScript(output.script);
+    setIsEditing(false);
+  };
+
+  const insertMarkdown = (prefix: string, suffix: string = '') => {
+    if (!textareaRef.current) return;
+
+    const textarea = textareaRef.current;
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const text = textarea.value;
+    const selectedText = text.substring(start, end);
+    const before = text.substring(0, start);
+    const after = text.substring(end);
+
+    const newText = `${before}${prefix}${selectedText}${suffix}${after}`;
+    setEditedScript(newText);
+
+    // Reset focus and selection
+    setTimeout(() => {
+      textarea.focus();
+      const newCursorPos = start + prefix.length + selectedText.length + suffix.length;
+      textarea.setSelectionRange(newCursorPos, newCursorPos);
+    }, 0);
+  };
 
   const copyToClipboard = (text: string, section: string) => {
     navigator.clipboard.writeText(text);
@@ -62,12 +113,79 @@ export default function ScriptOutput({ output }: ScriptOutputProps) {
             <Layout className="w-5 h-5" />
             <span>FULL SCRIPT</span>
           </div>
-          <CopyButton text={output.script} section="script" />
+          <div className="flex items-center gap-4">
+            {isEditing && (
+              <div className="flex items-center gap-1 bg-slate-50 p-1 rounded-lg border border-slate-200">
+                <button
+                  onClick={() => insertMarkdown('**', '**')}
+                  className="p-1.5 hover:bg-white hover:shadow-sm rounded transition-all text-slate-600"
+                  title="Bold"
+                >
+                  <Bold className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => insertMarkdown('_', '_')}
+                  className="p-1.5 hover:bg-white hover:shadow-sm rounded transition-all text-slate-600"
+                  title="Italic"
+                >
+                  <Italic className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => insertMarkdown('\n- ')}
+                  className="p-1.5 hover:bg-white hover:shadow-sm rounded transition-all text-slate-600"
+                  title="Bullet List"
+                >
+                  <List className="w-4 h-4" />
+                </button>
+              </div>
+            )}
+            <div className="flex items-center gap-2">
+              {isEditing ? (
+                <>
+                  <button
+                    onClick={handleSave}
+                    className="flex items-center gap-1 px-3 py-1.5 bg-green-500 text-white rounded-lg text-sm font-bold hover:bg-green-600 transition-colors"
+                  >
+                    <Save className="w-4 h-4" />
+                    Save
+                  </button>
+                  <button
+                    onClick={handleCancel}
+                    className="flex items-center gap-1 px-3 py-1.5 bg-slate-100 text-slate-500 rounded-lg text-sm font-bold hover:bg-slate-200 transition-colors"
+                  >
+                    <X className="w-4 h-4" />
+                    Cancel
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    onClick={() => setIsEditing(true)}
+                    className="p-2 hover:bg-slate-100 rounded-lg transition-colors text-slate-400 hover:text-indigo-600"
+                    title="Edit script"
+                  >
+                    <Edit2 className="w-5 h-5" />
+                  </button>
+                  <CopyButton text={output.script} section="script" />
+                </>
+              )}
+            </div>
+          </div>
         </div>
         <div className="">
-          <p className="whitespace-pre-wrap text-slate-700 leading-relaxed font-medium">
-            {output.script}
-          </p>
+          {isEditing ? (
+            <textarea
+              ref={textareaRef}
+              value={editedScript}
+              onChange={(e) => setEditedScript(e.target.value)}
+              className="w-full h-96 px-4 py-3 rounded-xl border border-indigo-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all font-medium text-slate-700 leading-relaxed resize-none"
+              autoFocus
+            />
+          ) : (
+            <div className="markdown-body text-slate-700 leading-relaxed font-medium">
+              <ReactMarkdown>{output.script}</ReactMarkdown>
+            </div>
+          )}
         </div>
       </div>
 
