@@ -6,6 +6,7 @@ import ScriptForm from './components/ScriptForm';
 import ScriptOutput from './components/ScriptOutput';
 import HistoryList from './components/HistoryList';
 import ConfirmationModal from './components/ConfirmationModal';
+import AdBanner from './components/AdBanner';
 import { ScriptInput, ScriptOutput as ScriptOutputType, SavedScript } from './types';
 import { generateViralScript } from './services/gemini';
 import { storage } from './lib/storage';
@@ -17,6 +18,7 @@ export default function App() {
   const [currentScriptId, setCurrentScriptId] = useState<string | null>(null);
   const [history, setHistory] = useState<SavedScript[]>([]);
   const [view, setView] = useState<'generator' | 'history'>('generator');
+  const [searchTerm, setSearchTerm] = useState('');
   const [isClearModalOpen, setIsClearModalOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
@@ -126,10 +128,17 @@ export default function App() {
     }
   };
 
+  const filteredHistory = history.filter(script => 
+    script.input.topic.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    script.output.keywords.some(k => k.toLowerCase().includes(searchTerm.toLowerCase()))
+  );
+
   return (
     <div className="min-h-screen bg-slate-50 selection:bg-indigo-100 selection:text-indigo-900">
       <div className="max-w-6xl mx-auto px-4 pb-20">
         <Header />
+
+        <AdBanner adSlot="9266679211" className="max-w-4xl mx-auto" />
 
         {/* Navigation Tabs */}
         <div className="flex justify-center mb-8">
@@ -218,6 +227,7 @@ export default function App() {
                       output={output} 
                       onUpdate={handleUpdateOutput}
                     />
+                    <AdBanner adSlot="9266679211" className="mt-8" />
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -230,6 +240,25 @@ export default function App() {
               exit={{ opacity: 0, x: -20 }}
               className="max-w-2xl mx-auto w-full"
             >
+              <AdBanner adSlot="9266679211" className="mb-8" />
+              
+              <div className="mb-8">
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="Search by topic or keywords..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full px-5 py-4 pl-12 rounded-2xl bg-white border border-slate-100 shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all font-medium"
+                  />
+                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
               <div className="flex items-center justify-between mb-8">
                 <div>
                   <h2 className="text-2xl font-bold text-slate-900">History</h2>
@@ -246,11 +275,16 @@ export default function App() {
                 )}
               </div>
               <HistoryList 
-                history={history} 
+                history={filteredHistory} 
                 onDelete={handleDeleteHistory} 
                 onSelect={handleSelectHistory} 
                 onRegenerate={handleRegenerateHistory}
               />
+              {filteredHistory.length === 0 && history.length > 0 && (
+                <div className="text-center py-12">
+                  <p className="text-slate-500 font-medium">No scripts found matching "{searchTerm}"</p>
+                </div>
+              )}
             </motion.div>
           )}
         </AnimatePresence>
