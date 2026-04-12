@@ -5,17 +5,14 @@ import {
   RefreshCw, 
   History as HistoryIcon, 
   Trash2, 
-  Zap, 
   Settings as SettingsIcon,
-  LayoutDashboard,
-  ShoppingCart
+  LayoutDashboard
 } from 'lucide-react';
 import Header from './components/Header';
 import ScriptForm from './components/ScriptForm';
 import ScriptOutput from './components/ScriptOutput';
 import HistoryList from './components/HistoryList';
 import ConfirmationModal from './components/ConfirmationModal';
-import PricingModal from './components/PricingModal';
 import AdBanner from './components/AdBanner';
 import SettingsSection from './components/SettingsSection';
 import { ScriptInput, ScriptOutput as ScriptOutputType, SavedScript, User, AppView } from './types';
@@ -26,11 +23,8 @@ const GUEST_USER: User = {
   id: 'guest',
   name: 'Guest User',
   email: 'guest@example.com',
-  credits: 100,
-  exhaustedCredits: 0,
   authMode: 'password',
-  theme: 'light',
-  usageHistory: []
+  theme: 'light'
 };
 
 export default function App() {
@@ -43,30 +37,15 @@ export default function App() {
   const [user, setUser] = useState<User>(GUEST_USER);
   const [searchTerm, setSearchTerm] = useState('');
   const [isClearModalOpen, setIsClearModalOpen] = useState(false);
-  const [isPricingOpen, setIsPricingOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
-  // Initialize credits and handle daily reset
   useEffect(() => {
-    const { credits, lastReset } = storage.getCredits();
-    const today = new Date().toDateString();
-
-    if (lastReset !== today) {
-      // Daily reset: If credits are below 100, refill to 100. 
-      // If they have more (from purchases), keep them.
-      const newCredits = Math.max(credits, 100);
-      storage.saveCredits(newCredits, today);
-      setUser(prev => ({ ...prev, credits: newCredits }));
-    } else {
-      setUser(prev => ({ ...prev, credits }));
-    }
-    
     setHistory(storage.getHistory(user.id));
   }, [user.id]);
 
   useEffect(() => {
     if (user.theme) {
-      document.documentElement.classList.remove('dark', 'emerald');
+      document.documentElement.classList.remove('dark', 'emerald', 'sunset', 'midnight');
       if (user.theme !== 'light') {
         document.documentElement.classList.add(user.theme);
       }
@@ -77,10 +56,6 @@ export default function App() {
     setIsLoading(true);
     setError(null);
     try {
-      if (user.credits < 20) {
-        throw new Error('Insufficient credits');
-      }
-
       const result = await generateViralScript(input);
       setOutput(result);
       
@@ -95,15 +70,6 @@ export default function App() {
       setHistory(storage.getHistory(user.id));
       setCurrentScriptId(newSavedScript.id);
 
-      // Update local user credits and persist
-      const newCredits = user.credits - 20;
-      setUser(prev => ({
-        ...prev,
-        credits: newCredits,
-        exhaustedCredits: prev.exhaustedCredits + 20
-      }));
-      storage.saveCredits(newCredits, new Date().toDateString());
-
       if (window.innerWidth < 768) {
         setTimeout(() => {
           document.getElementById('output-section')?.scrollIntoView({ behavior: 'smooth' });
@@ -115,13 +81,6 @@ export default function App() {
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const handleBuyCredits = (amount: number) => {
-    const newCredits = user.credits + amount;
-    setUser(prev => ({ ...prev, credits: newCredits }));
-    storage.saveCredits(newCredits, new Date().toDateString());
-    setIsPricingOpen(false);
   };
 
   const handleReset = () => {
@@ -203,6 +162,8 @@ export default function App() {
     <div className={`min-h-screen transition-colors duration-500 ${
       user.theme === 'dark' ? 'bg-slate-950 text-slate-100' : 
       user.theme === 'emerald' ? 'bg-emerald-950 text-emerald-50' : 
+      user.theme === 'sunset' ? 'bg-[#2d1b2d] text-[#fff5f5]' :
+      user.theme === 'midnight' ? 'bg-[#0a0a0a] text-[#f0f9ff]' :
       'bg-slate-50 text-slate-900'
     }`}>
       <div className="container mx-auto px-4 py-8">
@@ -233,31 +194,6 @@ export default function App() {
               label="Settings" 
             />
           </div>
-
-          <div className="flex items-center gap-4">
-            {/* Credit Badge */}
-            <motion.div 
-              whileHover={{ scale: 1.05 }}
-              className="flex items-center gap-4 px-6 py-3 bg-white/10 backdrop-blur-md rounded-[1.5rem] border border-white/10 shadow-xl"
-            >
-              <div className="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-500/30">
-                <Zap className="w-5 h-5 fill-current" />
-              </div>
-              <div>
-                <p className="text-[10px] font-black text-indigo-400 uppercase tracking-widest leading-none mb-1.5">Credits Available</p>
-                <p className="text-lg font-black leading-none">
-                  {user.credits} <span className="text-slate-400 text-xs font-bold">/ {Math.floor(user.credits / 20)} scripts</span>
-                </p>
-              </div>
-              <button
-                onClick={() => setIsPricingOpen(true)}
-                className="ml-2 p-2 bg-indigo-600/20 text-indigo-600 rounded-lg hover:bg-indigo-600 hover:text-white transition-all"
-                title="Buy Credits"
-              >
-                <ShoppingCart className="w-4 h-4" />
-              </button>
-            </motion.div>
-          </div>
         </div>
 
         <AnimatePresence mode="wait">
@@ -272,22 +208,6 @@ export default function App() {
               {/* Form Section */}
               <div className={`lg:col-span-5 transition-all duration-500 ${output ? 'lg:col-span-4' : 'lg:col-span-8 lg:col-start-3'}`}>
                 <div className="relative">
-                  {user.credits < 20 && (
-                    <div className="absolute inset-0 z-10 bg-white/80 backdrop-blur-sm rounded-[2.5rem] flex flex-col items-center justify-center p-8 text-center">
-                      <div className="w-16 h-16 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-600 mb-4">
-                        <Zap className="w-8 h-8 fill-current" />
-                      </div>
-                      <h3 className="text-xl font-black text-slate-900 mb-2">Credits Exhausted</h3>
-                      <p className="text-slate-500 font-medium mb-6">You need at least 20 credits to generate a script.</p>
-                      <button
-                        onClick={() => setIsPricingOpen(true)}
-                        className="px-8 py-4 bg-indigo-600 text-white rounded-2xl font-black shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition-all flex items-center gap-2"
-                      >
-                        <ShoppingCart className="w-5 h-5" />
-                        Buy Credits
-                      </button>
-                    </div>
-                  )}
                   <ScriptForm onSubmit={handleGenerate} isLoading={isLoading} />
                 </div>
                 
@@ -398,12 +318,6 @@ export default function App() {
           onConfirm={clearAllHistory}
           title="Clear All History?"
           message="Are you sure you want to delete all your saved scripts? This action is permanent."
-        />
-
-        <PricingModal
-          isOpen={isPricingOpen}
-          onClose={() => setIsPricingOpen(false)}
-          onBuy={handleBuyCredits}
         />
       </div>
     </div>

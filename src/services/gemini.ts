@@ -61,12 +61,18 @@ INSTRUCTIONS:
 - Encourage comments, saves, or shares
 - Make it feel natural and engaging (not forced)
 
-5. SEO KEYWORDS
-- Provide 10–15 high-ranking keyword phrases
-- Format: [keyword1, keyword2, keyword3]
+5. SEO KEYWORDS & PHRASES
+- Provide 10–15 high-ranking keywords and long-tail phrases
+- Include a mix of broad search terms and specific niche phrases
+- Optimize for ${input.platform} search algorithms
+- Format: ["keyword 1", "long tail phrase 2", ...]
 
-6. HASHTAGS
-- Provide 10–15 trending and relevant hashtags
+6. VIRAL HASHTAGS
+- Provide 15–20 hashtags categorized as:
+  - 5 Broad/High-volume (e.g., #viral, #trending)
+  - 7 Niche-specific (related to the topic)
+  - 3-5 Platform-specific (e.g., #reelsvideo, #shortsvideo)
+- Ensure they are currently trending and relevant to the audience
 
 ---
 

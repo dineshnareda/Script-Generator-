@@ -37,20 +37,6 @@ export const storage = {
     localStorage.removeItem(`${STORAGE_KEY_PREFIX}${userId}`);
   },
 
-  getCredits: (): { credits: number; lastReset: string } => {
-    const data = localStorage.getItem('viral_scripts_credits');
-    if (!data) return { credits: 100, lastReset: new Date().toDateString() };
-    try {
-      return JSON.parse(data);
-    } catch (e) {
-      return { credits: 100, lastReset: new Date().toDateString() };
-    }
-  },
-
-  saveCredits: (credits: number, lastReset: string) => {
-    localStorage.setItem('viral_scripts_credits', JSON.stringify({ credits, lastReset }));
-  },
-
   setToken: (token: string) => {
     localStorage.setItem('viral_scripts_token', token);
   },

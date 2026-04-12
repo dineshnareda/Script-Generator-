@@ -4,7 +4,7 @@ export type Language = 'Hindi' | 'English' | 'Hinglish';
 export type Duration = '15 sec' | '30 sec' | '60 sec';
 export type ContentType = 'Story' | 'Facts' | 'Motivation' | 'Comedy' | 'Educational';
 export type HookType = 'Question' | 'Shock' | 'Relatable' | 'Bold';
-export type Theme = 'light' | 'dark' | 'emerald';
+export type Theme = 'light' | 'dark' | 'emerald' | 'sunset' | 'midnight';
 
 export interface ScriptInput {
   topic: string;
@@ -33,28 +33,13 @@ export interface SavedScript {
   output: ScriptOutput;
 }
 
-export interface UsageLog {
-  id: string;
-  timestamp: number;
-  topic: string;
-  creditsUsed: number;
-}
-
 export interface User {
   id: string;
   name: string;
   email: string;
-  credits: number;
-  exhaustedCredits: number;
   authMode: 'password' | 'otp';
   profilePic?: string;
   theme: Theme;
-  usageHistory: UsageLog[];
-}
-
-export interface AuthResponse {
-  user: User;
-  token: string;
 }
 
 export type AppView = 'generator' | 'history' | 'auth' | 'profile' | 'settings';

@@ -4,7 +4,9 @@ import {
   Sun, 
   Moon, 
   Leaf, 
-  CheckCircle
+  CheckCircle,
+  Sunset,
+  CloudMoon
 } from 'lucide-react';
 import { User, Theme } from '../types';
 import Tooltip from './ui/Tooltip';
@@ -20,6 +22,8 @@ export default function SettingsSection({ user, onUpdate }: SettingsSectionProps
     { id: 'light', label: 'Light Mode', icon: Sun, color: 'bg-amber-50 text-amber-600', tooltip: 'Classic clean look for bright environments' },
     { id: 'dark', label: 'Dark Mode', icon: Moon, color: 'bg-slate-900 text-slate-100', tooltip: 'Easy on the eyes for low-light environments' },
     { id: 'emerald', label: 'Premium Green', icon: Leaf, color: 'bg-emerald-50 text-emerald-600', tooltip: 'Exclusive emerald aesthetic for a luxury feel' },
+    { id: 'sunset', label: 'Sunset Glow', icon: Sunset, color: 'bg-orange-50 text-orange-600', tooltip: 'Warm and cozy aesthetic for evening creativity' },
+    { id: 'midnight', label: 'Midnight Sky', icon: CloudMoon, color: 'bg-indigo-950 text-cyan-400', tooltip: 'Deep, focused environment for late-night sessions' },
   ];
 
   const handleThemeChange = (theme: Theme) => {

@@ -22,25 +22,46 @@
     --border-color: #065f46;
     --input-bg: rgba(255, 255, 255, 0.05);
   }
+  .sunset {
+    --bg-main: #2d1b2d;
+    --bg-card: #4a2c4a;
+    --text-main: #fff5f5;
+    --text-muted: #fbd38d;
+    --border-color: #704070;
+    --input-bg: rgba(255, 255, 255, 0.05);
+  }
+  .midnight {
+    --bg-main: #0a0a0a;
+    --bg-card: #171717;
+    --text-main: #f0f9ff;
+    --text-muted: #7dd3fc;
+    --border-color: #262626;
+    --input-bg: rgba(255, 255, 255, 0.05);
+  }
 }
 
-.dark body, .emerald body { background-color: var(--bg-main); color: var(--text-main); }
-.dark .bg-white, .emerald .bg-white { background-color: var(--bg-card); color: var(--text-main); }
-.dark .text-slate-900, .emerald .text-slate-900 { color: var(--text-main); }
-.dark .text-slate-800, .emerald .text-slate-800 { color: var(--text-main); }
-.dark .text-slate-700, .emerald .text-slate-700 { color: var(--text-main); }
-.dark .text-slate-600, .emerald .text-slate-600 { color: var(--text-muted); }
-.dark .text-slate-500, .emerald .text-slate-500 { color: var(--text-muted); }
-.dark .text-slate-400, .emerald .text-slate-400 { color: var(--text-muted); opacity: 0.8; }
-.dark .border-slate-100, .emerald .border-slate-100 { border-color: var(--border-color); }
-.dark .bg-slate-50, .emerald .bg-slate-50 { background-color: var(--input-bg); color: var(--text-main); }
-.dark input, .dark textarea, .dark select, .emerald input, .emerald textarea, .emerald select { 
+.dark body, .emerald body, .sunset body, .midnight body { background-color: var(--bg-main); color: var(--text-main); }
+.dark .bg-white, .emerald .bg-white, .sunset .bg-white, .midnight .bg-white { background-color: var(--bg-card); color: var(--text-main); }
+.dark .text-slate-900, .emerald .text-slate-900, .sunset .text-slate-900, .midnight .text-slate-900 { color: var(--text-main); }
+.dark .text-slate-800, .emerald .text-slate-800, .sunset .text-slate-800, .midnight .text-slate-800 { color: var(--text-main); }
+.dark .text-slate-700, .emerald .text-slate-700, .sunset .text-slate-700, .midnight .text-slate-700 { color: var(--text-main); }
+.dark .text-slate-600, .emerald .text-slate-600, .sunset .text-slate-600, .midnight .text-slate-600 { color: var(--text-muted); }
+.dark .text-slate-500, .emerald .text-slate-500, .sunset .text-slate-500, .midnight .text-slate-500 { color: var(--text-muted); }
+.dark .text-slate-400, .emerald .text-slate-400, .sunset .text-slate-400, .midnight .text-slate-400 { color: var(--text-muted); opacity: 0.8; }
+.dark .border-slate-100, .emerald .border-slate-100, .sunset .border-slate-100, .midnight .border-slate-100 { border-color: var(--border-color); }
+.dark .bg-slate-50, .emerald .bg-slate-50, .sunset .bg-slate-50, .midnight .bg-slate-50 { background-color: var(--input-bg); color: var(--text-main); }
+.dark input, .dark textarea, .dark select, .emerald input, .emerald textarea, .emerald select, .sunset input, .sunset textarea, .sunset select, .midnight input, .midnight textarea, .midnight select { 
   background-color: var(--input-bg) !important; 
   color: var(--text-main) !important;
   border-color: var(--border-color) !important;
 }
-.dark .bg-indigo-50, .emerald .bg-indigo-50 { background-color: rgba(79, 70, 229, 0.1); }
-.dark .text-indigo-900, .emerald .text-indigo-900 { color: var(--text-main); }
+.dark .bg-indigo-50, .emerald .bg-indigo-50, .sunset .bg-indigo-50, .midnight .bg-indigo-50 { background-color: rgba(79, 70, 229, 0.1); }
+.dark .text-indigo-900, .emerald .text-indigo-900, .sunset .text-indigo-900, .midnight .text-indigo-900 { color: var(--text-main); }
+
+/* Custom Select Theme Overrides */
+.dark .hover\:bg-slate-50:hover, .emerald .hover\:bg-slate-50:hover, .sunset .hover\:bg-slate-50:hover, .midnight .hover\:bg-slate-50:hover { background-color: rgba(255, 255, 255, 0.05); }
+.dark .bg-slate-100, .emerald .bg-slate-100, .sunset .bg-slate-100, .midnight .bg-slate-100 { background-color: rgba(255, 255, 255, 0.1); }
+.dark .shadow-2xl, .emerald .shadow-2xl, .sunset .shadow-2xl, .midnight .shadow-2xl { shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
 
 @layer base {
   .markdown-body {
