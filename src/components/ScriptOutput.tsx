@@ -172,17 +172,24 @@ export default function ScriptOutput({ output, onUpdate }: ScriptOutputProps) {
             </div>
           </div>
         </div>
-        <div className="">
+        <div className="relative">
           {isEditing ? (
-            <textarea
-              ref={textareaRef}
-              value={editedScript}
-              onChange={(e) => setEditedScript(e.target.value)}
-              className="w-full h-96 px-4 py-3 rounded-xl border border-indigo-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all font-medium text-slate-700 leading-relaxed resize-none"
-              autoFocus
-            />
+            <div className="space-y-4">
+              <textarea
+                ref={textareaRef}
+                value={editedScript}
+                onChange={(e) => setEditedScript(e.target.value)}
+                className="w-full h-96 px-6 py-5 rounded-2xl border-2 border-indigo-100 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none font-medium text-slate-700 leading-relaxed resize-none bg-slate-50/50 transition-all"
+                autoFocus
+                placeholder="Edit your script here..."
+              />
+              <div className="flex items-center justify-between text-[10px] font-black text-slate-400 uppercase tracking-widest px-2">
+                <span>Markdown Supported</span>
+                <span>{editedScript.length} characters</span>
+              </div>
+            </div>
           ) : (
-            <div className="markdown-body text-slate-700 leading-relaxed font-medium">
+            <div className="markdown-body text-slate-700 leading-relaxed font-medium p-2">
               <ReactMarkdown>{output.script}</ReactMarkdown>
             </div>
           )}

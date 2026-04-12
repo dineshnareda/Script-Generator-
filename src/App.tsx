@@ -1,13 +1,27 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { AlertCircle, RefreshCw, History as HistoryIcon, PlusCircle, Trash2 } from 'lucide-react';
+import { 
+  AlertCircle, 
+  RefreshCw, 
+  History as HistoryIcon, 
+  PlusCircle, 
+  Trash2, 
+  LogOut, 
+  User as UserIcon, 
+  Zap, 
+  Settings as SettingsIcon,
+  LayoutDashboard
+} from 'lucide-react';
 import Header from './components/Header';
 import ScriptForm from './components/ScriptForm';
 import ScriptOutput from './components/ScriptOutput';
 import HistoryList from './components/HistoryList';
 import ConfirmationModal from './components/ConfirmationModal';
 import AdBanner from './components/AdBanner';
-import { ScriptInput, ScriptOutput as ScriptOutputType, SavedScript } from './types';
+import AuthPage from './components/AuthPage';
+import SettingsSection from './components/SettingsSection';
+import LogoutModal from './components/LogoutModal';
+import { ScriptInput, ScriptOutput as ScriptOutputType, SavedScript, User, AuthResponse, AppView } from './types';
 import { generateViralScript } from './services/gemini';
 import { storage } from './lib/storage';
 
@@ -17,19 +31,94 @@ export default function App() {
   const [output, setOutput] = useState<ScriptOutputType | null>(null);
   const [currentScriptId, setCurrentScriptId] = useState<string | null>(null);
   const [history, setHistory] = useState<SavedScript[]>([]);
-  const [view, setView] = useState<'generator' | 'history'>('generator');
+  const [view, setView] = useState<AppView>('auth');
+  const [user, setUser] = useState<User | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [isClearModalOpen, setIsClearModalOpen] = useState(false);
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
   useEffect(() => {
-    setHistory(storage.getHistory());
-  }, []);
+    if (user?.id) {
+      setHistory(storage.getHistory(user.id));
+    } else {
+      setHistory([]);
+    }
+    checkAuth();
+  }, [user?.id]);
+
+  useEffect(() => {
+    if (user?.theme) {
+      document.documentElement.classList.remove('dark', 'emerald');
+      if (user.theme !== 'light') {
+        document.documentElement.classList.add(user.theme);
+      }
+    }
+  }, [user?.theme]);
+
+  const checkAuth = async () => {
+    const token = storage.getToken();
+    if (!token) {
+      setView('auth');
+      return;
+    }
+
+    try {
+      const res = await fetch('/api/user/profile', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const userData = await res.json();
+        setUser(userData);
+        setView('generator');
+      } else {
+        storage.removeToken();
+        setView('auth');
+      }
+    } catch (err) {
+      console.error('Auth check failed', err);
+      setView('auth');
+    }
+  };
+
+  const handleAuthSuccess = (auth: AuthResponse) => {
+    storage.setToken(auth.token);
+    setUser(auth.user);
+    setView('generator');
+  };
+
+  const handleLogout = () => {
+    storage.removeToken();
+    setUser(null);
+    setView('auth');
+    setIsLogoutModalOpen(false);
+  };
 
   const handleGenerate = async (input: ScriptInput) => {
+    if (!user) return;
+
     setIsLoading(true);
     setError(null);
     try {
+      // 1. Check/Use Credits on Server
+      const creditRes = await fetch('/api/user/credits/use', {
+        method: 'POST',
+        headers: { 
+          'Authorization': `Bearer ${storage.getToken()}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ topic: input.topic })
+      });
+
+      if (!creditRes.ok) {
+        const creditData = await creditRes.json();
+        throw new Error(creditData.error || 'Failed to use credits');
+      }
+
+      const updatedUserData = await creditRes.json();
+      setUser({ ...user, ...updatedUserData });
+
+      // 2. Generate Script
       const result = await generateViralScript(input);
       setOutput(result);
       
@@ -40,8 +129,8 @@ export default function App() {
         output: result
       };
       
-      storage.saveScript(newSavedScript);
-      setHistory(storage.getHistory());
+      storage.saveScript(newSavedScript, user.id);
+      setHistory(storage.getHistory(user.id));
       setCurrentScriptId(newSavedScript.id);
 
       // Scroll to output on mobile
@@ -50,9 +139,9 @@ export default function App() {
           document.getElementById('output-section')?.scrollIntoView({ behavior: 'smooth' });
         }, 100);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      setError('Failed to generate script. Please check your API key or try again.');
+      setError(err.message || 'Failed to generate script. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -65,26 +154,44 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleDeleteHistory = (id: string) => {
+  const handleUpdateOutput = (updatedOutput: ScriptOutputType) => {
+    if (!currentScriptId || !user) return;
+    const scriptToUpdate = history.find(s => s.id === currentScriptId);
+    if (scriptToUpdate) {
+      const updatedSavedScript: SavedScript = {
+        ...scriptToUpdate,
+        output: updatedOutput
+      };
+      storage.updateScript(currentScriptId, updatedSavedScript, user.id);
+      setHistory(storage.getHistory(user.id));
+      setOutput(updatedOutput);
+    }
+  };
+
+  const handleDeleteScript = (id: string) => {
     setDeleteId(id);
   };
 
   const confirmDelete = () => {
-    if (deleteId) {
-      storage.deleteScript(deleteId);
-      setHistory(storage.getHistory());
+    if (deleteId && user) {
+      storage.deleteScript(deleteId, user.id);
+      setHistory(storage.getHistory(user.id));
+      if (currentScriptId === deleteId) {
+        setOutput(null);
+        setCurrentScriptId(null);
+      }
       setDeleteId(null);
     }
   };
 
-  const handleClearHistory = () => {
-    setIsClearModalOpen(true);
-  };
-
-  const confirmClear = () => {
-    storage.clearHistory();
-    setHistory([]);
-    setIsClearModalOpen(false);
+  const clearAllHistory = () => {
+    if (user) {
+      storage.clearHistory(user.id);
+      setHistory([]);
+      setOutput(null);
+      setCurrentScriptId(null);
+      setIsClearModalOpen(false);
+    }
   };
 
   const handleSelectHistory = (script: SavedScript) => {
@@ -95,6 +202,7 @@ export default function App() {
   };
 
   const handleRegenerateHistory = async (script: SavedScript) => {
+    if (!user) return;
     try {
       const result = await generateViralScript(script.input);
       const updatedScript: SavedScript = {
@@ -102,29 +210,13 @@ export default function App() {
         timestamp: Date.now(),
         output: result
       };
-      storage.updateScript(script.id, updatedScript);
-      setHistory(storage.getHistory());
-      // Optionally show the new result immediately
+      storage.updateScript(script.id, updatedScript, user.id);
+      setHistory(storage.getHistory(user.id));
       setOutput(result);
       setCurrentScriptId(script.id);
     } catch (err) {
       console.error(err);
       setError('Failed to re-generate script.');
-    }
-  };
-
-  const handleUpdateOutput = (updatedOutput: ScriptOutputType) => {
-    if (!currentScriptId) return;
-    
-    const scriptToUpdate = history.find(s => s.id === currentScriptId);
-    if (scriptToUpdate) {
-      const updatedSavedScript: SavedScript = {
-        ...scriptToUpdate,
-        output: updatedOutput
-      };
-      storage.updateScript(currentScriptId, updatedSavedScript);
-      setHistory(storage.getHistory());
-      setOutput(updatedOutput);
     }
   };
 
@@ -134,49 +226,67 @@ export default function App() {
   );
 
   return (
-    <div className="min-h-screen bg-slate-50 selection:bg-indigo-100 selection:text-indigo-900">
-      <div className="max-w-6xl mx-auto px-4 pb-20">
+    <div className={`min-h-screen transition-colors duration-500 ${
+      user?.theme === 'dark' ? 'bg-slate-950 text-slate-100' : 
+      user?.theme === 'emerald' ? 'bg-emerald-950 text-emerald-50' : 
+      'bg-slate-50 text-slate-900'
+    }`}>
+      <div className="container mx-auto px-4 py-8">
         <Header />
 
         <AdBanner adSlot="9266679211" className="max-w-4xl mx-auto" />
 
-        {/* Navigation Tabs */}
-        <div className="flex justify-center mb-8">
-          <div className="bg-white p-1 rounded-2xl shadow-sm border border-slate-100 flex gap-1">
-            <button
-              onClick={() => setView('generator')}
-              className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold transition-all ${
-                view === 'generator' 
-                  ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/30' 
-                  : 'text-slate-500 hover:bg-slate-50'
-              }`}
-            >
-              <PlusCircle className="w-4 h-4" />
-              Generator
-            </button>
-            <button
-              onClick={() => setView('history')}
-              className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold transition-all ${
-                view === 'history' 
-                  ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/30' 
-                  : 'text-slate-500 hover:bg-slate-50'
-              }`}
-            >
-              <HistoryIcon className="w-4 h-4" />
-              History
-              {history.length > 0 && (
-                <span className={`ml-1 px-1.5 py-0.5 rounded-md text-[10px] ${
-                  view === 'history' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500'
-                }`}>
-                  {history.length}
-                </span>
-              )}
-            </button>
-          </div>
+        {/* Navigation & User Info */}
+        <div className="flex flex-col items-center justify-center gap-6 mb-12">
+          {user && (
+            <div className="bg-white/10 backdrop-blur-md p-1.5 rounded-[2rem] shadow-xl border border-white/10 flex flex-wrap justify-center gap-1">
+              <NavButton 
+                active={view === 'generator'} 
+                onClick={() => setView('generator')} 
+                icon={LayoutDashboard} 
+                label="Studio" 
+              />
+              <NavButton 
+                active={view === 'history'} 
+                onClick={() => setView('history')} 
+                icon={HistoryIcon} 
+                label="History" 
+                badge={history.length}
+              />
+              <NavButton 
+                active={view === 'settings'} 
+                onClick={() => setView('settings')} 
+                icon={SettingsIcon} 
+                label="Settings" 
+              />
+            </div>
+          )}
+
+          {user && (
+            <div className="flex items-center gap-4">
+              {/* Credit Badge */}
+              <motion.div 
+                whileHover={{ scale: 1.05 }}
+                className="flex items-center gap-4 px-6 py-3 bg-white/10 backdrop-blur-md rounded-[1.5rem] border border-white/10 shadow-xl"
+              >
+                <div className="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-500/30">
+                  <Zap className="w-5 h-5 fill-current" />
+                </div>
+                <div>
+                  <p className="text-[10px] font-black text-indigo-400 uppercase tracking-widest leading-none mb-1.5">Credits Available</p>
+                  <p className="text-lg font-black leading-none">
+                    {user.credits} <span className="text-slate-400 text-xs font-bold">/ {Math.floor(user.credits / 20)} scripts</span>
+                  </p>
+                </div>
+              </motion.div>
+            </div>
+          )}
         </div>
 
         <AnimatePresence mode="wait">
-          {view === 'generator' ? (
+          {view === 'auth' ? (
+            <AuthPage onAuthSuccess={handleAuthSuccess} />
+          ) : view === 'generator' ? (
             <motion.main
               key="generator"
               initial={{ opacity: 0, x: -20 }}
@@ -186,7 +296,23 @@ export default function App() {
             >
               {/* Form Section */}
               <div className={`lg:col-span-5 transition-all duration-500 ${output ? 'lg:col-span-4' : 'lg:col-span-8 lg:col-start-3'}`}>
-                <ScriptForm onSubmit={handleGenerate} isLoading={isLoading} />
+                <div className="relative">
+                  {user && user.credits < 20 && (
+                    <div className="absolute inset-0 z-10 bg-white/80 backdrop-blur-sm rounded-[2.5rem] flex flex-col items-center justify-center p-8 text-center">
+                      <div className="w-16 h-16 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-600 mb-4">
+                        <Zap className="w-8 h-8 fill-current" />
+                      </div>
+                      <h3 className="text-xl font-black text-slate-900 mb-2">Credits Exhausted</h3>
+                      <p className="text-slate-500 font-medium mb-6">You need at least 20 credits to generate a script.</p>
+                      <button
+                        className="px-8 py-3 bg-indigo-600 text-white rounded-xl font-black shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition-all"
+                      >
+                        Buy Credits (Coming Soon)
+                      </button>
+                    </div>
+                  )}
+                  <ScriptForm onSubmit={handleGenerate} isLoading={isLoading} />
+                </div>
                 
                 <AnimatePresence>
                   {error && (
@@ -232,89 +358,100 @@ export default function App() {
                 )}
               </AnimatePresence>
             </motion.main>
-          ) : (
+          ) : view === 'history' ? (
             <motion.div
               key="history"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              className="max-w-2xl mx-auto w-full"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="max-w-4xl mx-auto"
             >
-              <AdBanner adSlot="9266679211" className="mb-8" />
-              
-              <div className="mb-8">
-                <div className="relative">
-                  <input
-                    type="text"
-                    placeholder="Search by topic or keywords..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full px-5 py-4 pl-12 rounded-2xl bg-white border border-slate-100 shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all font-medium"
-                  />
-                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                    </svg>
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+                <h2 className="text-3xl font-black text-slate-900">Script History</h2>
+                <div className="flex items-center gap-3">
+                  <div className="relative flex-1 md:w-64">
+                    <input
+                      type="text"
+                      placeholder="Search scripts..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="w-full pl-4 pr-4 py-3 rounded-xl bg-white border border-slate-100 shadow-sm focus:ring-2 focus:ring-indigo-500 outline-none font-medium"
+                    />
                   </div>
+                  {history.length > 0 && (
+                    <button
+                      onClick={() => setIsClearModalOpen(true)}
+                      className="p-3 rounded-xl bg-red-50 text-red-500 hover:bg-red-100 transition-all"
+                      title="Clear All"
+                    >
+                      <Trash2 className="w-5 h-5" />
+                    </button>
+                  )}
                 </div>
               </div>
 
-              <div className="flex items-center justify-between mb-8">
-                <div>
-                  <h2 className="text-2xl font-bold text-slate-900">History</h2>
-                  <p className="text-slate-500 text-sm">Last 50 generated scripts</p>
-                </div>
-                {history.length > 0 && (
-                  <button
-                    onClick={handleClearHistory}
-                    className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 rounded-xl text-sm font-bold hover:bg-red-100 transition-colors"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                    Clear All
-                  </button>
-                )}
-              </div>
               <HistoryList 
                 history={filteredHistory} 
-                onDelete={handleDeleteHistory} 
-                onSelect={handleSelectHistory} 
+                onSelect={handleSelectHistory}
+                onDelete={handleDeleteScript}
                 onRegenerate={handleRegenerateHistory}
               />
-              {filteredHistory.length === 0 && history.length > 0 && (
-                <div className="text-center py-12">
-                  <p className="text-slate-500 font-medium">No scripts found matching "{searchTerm}"</p>
-                </div>
-              )}
+              <AdBanner adSlot="9266679211" className="mt-12" />
             </motion.div>
+          ) : (
+            <SettingsSection 
+              user={user!} 
+              onUpdate={(updated) => setUser(updated)} 
+              onLogout={() => setIsLogoutModalOpen(true)}
+            />
           )}
         </AnimatePresence>
+
+        <ConfirmationModal
+          isOpen={!!deleteId}
+          onClose={() => setDeleteId(null)}
+          onConfirm={confirmDelete}
+          title="Delete Script?"
+          message="This action cannot be undone. This script will be permanently removed from your history."
+        />
+
+        <ConfirmationModal
+          isOpen={isClearModalOpen}
+          onClose={() => setIsClearModalOpen(false)}
+          onConfirm={clearAllHistory}
+          title="Clear All History?"
+          message="Are you sure you want to delete all your saved scripts? This action is permanent."
+        />
+
+        <LogoutModal
+          isOpen={isLogoutModalOpen}
+          onClose={() => setIsLogoutModalOpen(false)}
+          onConfirm={handleLogout}
+        />
       </div>
-
-      {/* Background Decorations */}
-      <div className="fixed top-0 left-0 w-full h-full -z-10 overflow-hidden pointer-events-none">
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-indigo-100/50 blur-3xl animate-pulse" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-blue-100/50 blur-3xl animate-pulse delay-1000" />
-      </div>
-
-      {/* Modals */}
-      <ConfirmationModal
-        isOpen={isClearModalOpen}
-        onClose={() => setIsClearModalOpen(false)}
-        onConfirm={confirmClear}
-        title="Clear All History"
-        message="Are you sure you want to delete all saved scripts? This action cannot be undone."
-        confirmText="Clear All"
-      />
-
-      <ConfirmationModal
-        isOpen={!!deleteId}
-        onClose={() => setDeleteId(null)}
-        onConfirm={confirmDelete}
-        title="Delete Script"
-        message="Are you sure you want to delete this script? This action cannot be undone."
-        confirmText="Delete"
-      />
     </div>
   );
 }
 
+function NavButton({ active, onClick, icon: Icon, label, badge }: { active: boolean, onClick: () => void, icon: any, label: string, badge?: number }) {
+  return (
+    <button
+      onClick={onClick}
+      className={`flex items-center gap-2 px-6 py-3 rounded-[1.5rem] font-black text-sm transition-all ${
+        active 
+          ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/30' 
+          : 'text-slate-500 hover:bg-white/10 hover:text-indigo-600'
+      }`}
+    >
+      <Icon className="w-4 h-4" />
+      {label}
+      {badge !== undefined && badge > 0 && (
+        <span className={`ml-1 px-1.5 py-0.5 rounded-lg text-[10px] font-black ${
+          active ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500'
+        }`}>
+          {badge}
+        </span>
+      )}
+    </button>
+  );
+}
