@@ -4,26 +4,34 @@ import {
   AlertCircle, 
   RefreshCw, 
   History as HistoryIcon, 
-  PlusCircle, 
   Trash2, 
-  LogOut, 
-  User as UserIcon, 
   Zap, 
   Settings as SettingsIcon,
-  LayoutDashboard
+  LayoutDashboard,
+  ShoppingCart
 } from 'lucide-react';
 import Header from './components/Header';
 import ScriptForm from './components/ScriptForm';
 import ScriptOutput from './components/ScriptOutput';
 import HistoryList from './components/HistoryList';
 import ConfirmationModal from './components/ConfirmationModal';
+import PricingModal from './components/PricingModal';
 import AdBanner from './components/AdBanner';
-import AuthPage from './components/AuthPage';
 import SettingsSection from './components/SettingsSection';
-import LogoutModal from './components/LogoutModal';
-import { ScriptInput, ScriptOutput as ScriptOutputType, SavedScript, User, AuthResponse, AppView } from './types';
+import { ScriptInput, ScriptOutput as ScriptOutputType, SavedScript, User, AppView } from './types';
 import { generateViralScript } from './services/gemini';
 import { storage } from './lib/storage';
+
+const GUEST_USER: User = {
+  id: 'guest',
+  name: 'Guest User',
+  email: 'guest@example.com',
+  credits: 100,
+  exhaustedCredits: 0,
+  authMode: 'password',
+  theme: 'light',
+  usageHistory: []
+};
 
 export default function App() {
   const [isLoading, setIsLoading] = useState(false);
@@ -31,108 +39,48 @@ export default function App() {
   const [output, setOutput] = useState<ScriptOutputType | null>(null);
   const [currentScriptId, setCurrentScriptId] = useState<string | null>(null);
   const [history, setHistory] = useState<SavedScript[]>([]);
-  const [view, setView] = useState<AppView>('auth');
-  const [user, setUser] = useState<User | null>(null);
+  const [view, setView] = useState<AppView>('generator');
+  const [user, setUser] = useState<User>(GUEST_USER);
   const [searchTerm, setSearchTerm] = useState('');
   const [isClearModalOpen, setIsClearModalOpen] = useState(false);
-  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+  const [isPricingOpen, setIsPricingOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
+  // Initialize credits and handle daily reset
   useEffect(() => {
-    if (user?.id) {
-      setHistory(storage.getHistory(user.id));
+    const { credits, lastReset } = storage.getCredits();
+    const today = new Date().toDateString();
+
+    if (lastReset !== today) {
+      // Daily reset: If credits are below 100, refill to 100. 
+      // If they have more (from purchases), keep them.
+      const newCredits = Math.max(credits, 100);
+      storage.saveCredits(newCredits, today);
+      setUser(prev => ({ ...prev, credits: newCredits }));
     } else {
-      setHistory([]);
+      setUser(prev => ({ ...prev, credits }));
     }
-    checkAuth();
-  }, [user?.id]);
+    
+    setHistory(storage.getHistory(user.id));
+  }, [user.id]);
 
   useEffect(() => {
-    if (user?.theme) {
+    if (user.theme) {
       document.documentElement.classList.remove('dark', 'emerald');
       if (user.theme !== 'light') {
         document.documentElement.classList.add(user.theme);
       }
     }
-  }, [user?.theme]);
-
-  const checkAuth = async () => {
-    const token = storage.getToken();
-    if (!token) {
-      setView('auth');
-      return;
-    }
-
-    try {
-      const res = await fetch('/api/user/profile', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      
-      let userData;
-      const contentType = res.headers.get("content-type");
-      if (contentType && contentType.includes("application/json")) {
-        userData = await res.json();
-      } else {
-        throw new Error(`Server error (${res.status})`);
-      }
-
-      if (res.ok) {
-        setUser(userData);
-        setView('generator');
-      } else {
-        storage.removeToken();
-        setView('auth');
-      }
-    } catch (err) {
-      console.error('Auth check failed', err);
-      setView('auth');
-    }
-  };
-
-  const handleAuthSuccess = (auth: AuthResponse) => {
-    storage.setToken(auth.token);
-    setUser(auth.user);
-    setView('generator');
-  };
-
-  const handleLogout = () => {
-    storage.removeToken();
-    setUser(null);
-    setView('auth');
-    setIsLogoutModalOpen(false);
-  };
+  }, [user.theme]);
 
   const handleGenerate = async (input: ScriptInput) => {
-    if (!user) return;
-
     setIsLoading(true);
     setError(null);
     try {
-      // 1. Check/Use Credits on Server
-      const creditRes = await fetch('/api/user/credits/use', {
-        method: 'POST',
-        headers: { 
-          'Authorization': `Bearer ${storage.getToken()}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ topic: input.topic })
-      });
-
-      if (!creditRes.ok) {
-        let creditData;
-        const contentType = creditRes.headers.get("content-type");
-        if (contentType && contentType.includes("application/json")) {
-          creditData = await creditRes.json();
-        } else {
-          throw new Error(`Server error (${creditRes.status})`);
-        }
-        throw new Error(creditData?.error || 'Failed to use credits');
+      if (user.credits < 20) {
+        throw new Error('Insufficient credits');
       }
 
-      const updatedUserData = await creditRes.json();
-      setUser({ ...user, ...updatedUserData });
-
-      // 2. Generate Script
       const result = await generateViralScript(input);
       setOutput(result);
       
@@ -147,7 +95,15 @@ export default function App() {
       setHistory(storage.getHistory(user.id));
       setCurrentScriptId(newSavedScript.id);
 
-      // Scroll to output on mobile
+      // Update local user credits and persist
+      const newCredits = user.credits - 20;
+      setUser(prev => ({
+        ...prev,
+        credits: newCredits,
+        exhaustedCredits: prev.exhaustedCredits + 20
+      }));
+      storage.saveCredits(newCredits, new Date().toDateString());
+
       if (window.innerWidth < 768) {
         setTimeout(() => {
           document.getElementById('output-section')?.scrollIntoView({ behavior: 'smooth' });
@@ -161,6 +117,13 @@ export default function App() {
     }
   };
 
+  const handleBuyCredits = (amount: number) => {
+    const newCredits = user.credits + amount;
+    setUser(prev => ({ ...prev, credits: newCredits }));
+    storage.saveCredits(newCredits, new Date().toDateString());
+    setIsPricingOpen(false);
+  };
+
   const handleReset = () => {
     setOutput(null);
     setCurrentScriptId(null);
@@ -169,7 +132,7 @@ export default function App() {
   };
 
   const handleUpdateOutput = (updatedOutput: ScriptOutputType) => {
-    if (!currentScriptId || !user) return;
+    if (!currentScriptId) return;
     const scriptToUpdate = history.find(s => s.id === currentScriptId);
     if (scriptToUpdate) {
       const updatedSavedScript: SavedScript = {
@@ -187,7 +150,7 @@ export default function App() {
   };
 
   const confirmDelete = () => {
-    if (deleteId && user) {
+    if (deleteId) {
       storage.deleteScript(deleteId, user.id);
       setHistory(storage.getHistory(user.id));
       if (currentScriptId === deleteId) {
@@ -199,13 +162,11 @@ export default function App() {
   };
 
   const clearAllHistory = () => {
-    if (user) {
-      storage.clearHistory(user.id);
-      setHistory([]);
-      setOutput(null);
-      setCurrentScriptId(null);
-      setIsClearModalOpen(false);
-    }
+    storage.clearHistory(user.id);
+    setHistory([]);
+    setOutput(null);
+    setCurrentScriptId(null);
+    setIsClearModalOpen(false);
   };
 
   const handleSelectHistory = (script: SavedScript) => {
@@ -216,7 +177,6 @@ export default function App() {
   };
 
   const handleRegenerateHistory = async (script: SavedScript) => {
-    if (!user) return;
     try {
       const result = await generateViralScript(script.input);
       const updatedScript: SavedScript = {
@@ -241,8 +201,8 @@ export default function App() {
 
   return (
     <div className={`min-h-screen transition-colors duration-500 ${
-      user?.theme === 'dark' ? 'bg-slate-950 text-slate-100' : 
-      user?.theme === 'emerald' ? 'bg-emerald-950 text-emerald-50' : 
+      user.theme === 'dark' ? 'bg-slate-950 text-slate-100' : 
+      user.theme === 'emerald' ? 'bg-emerald-950 text-emerald-50' : 
       'bg-slate-50 text-slate-900'
     }`}>
       <div className="container mx-auto px-4 py-8">
@@ -252,55 +212,56 @@ export default function App() {
 
         {/* Navigation & User Info */}
         <div className="flex flex-col items-center justify-center gap-6 mb-12">
-          {user && (
-            <div className="bg-white/10 backdrop-blur-md p-1.5 rounded-[2rem] shadow-xl border border-white/10 flex flex-wrap justify-center gap-1">
-              <NavButton 
-                active={view === 'generator'} 
-                onClick={() => setView('generator')} 
-                icon={LayoutDashboard} 
-                label="Studio" 
-              />
-              <NavButton 
-                active={view === 'history'} 
-                onClick={() => setView('history')} 
-                icon={HistoryIcon} 
-                label="History" 
-                badge={history.length}
-              />
-              <NavButton 
-                active={view === 'settings'} 
-                onClick={() => setView('settings')} 
-                icon={SettingsIcon} 
-                label="Settings" 
-              />
-            </div>
-          )}
+          <div className="bg-white/10 backdrop-blur-md p-1.5 rounded-[2rem] shadow-xl border border-white/10 flex flex-wrap justify-center gap-1">
+            <NavButton 
+              active={view === 'generator'} 
+              onClick={() => setView('generator')} 
+              icon={LayoutDashboard} 
+              label="Studio" 
+            />
+            <NavButton 
+              active={view === 'history'} 
+              onClick={() => setView('history')} 
+              icon={HistoryIcon} 
+              label="History" 
+              badge={history.length}
+            />
+            <NavButton 
+              active={view === 'settings'} 
+              onClick={() => setView('settings')} 
+              icon={SettingsIcon} 
+              label="Settings" 
+            />
+          </div>
 
-          {user && (
-            <div className="flex items-center gap-4">
-              {/* Credit Badge */}
-              <motion.div 
-                whileHover={{ scale: 1.05 }}
-                className="flex items-center gap-4 px-6 py-3 bg-white/10 backdrop-blur-md rounded-[1.5rem] border border-white/10 shadow-xl"
+          <div className="flex items-center gap-4">
+            {/* Credit Badge */}
+            <motion.div 
+              whileHover={{ scale: 1.05 }}
+              className="flex items-center gap-4 px-6 py-3 bg-white/10 backdrop-blur-md rounded-[1.5rem] border border-white/10 shadow-xl"
+            >
+              <div className="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-500/30">
+                <Zap className="w-5 h-5 fill-current" />
+              </div>
+              <div>
+                <p className="text-[10px] font-black text-indigo-400 uppercase tracking-widest leading-none mb-1.5">Credits Available</p>
+                <p className="text-lg font-black leading-none">
+                  {user.credits} <span className="text-slate-400 text-xs font-bold">/ {Math.floor(user.credits / 20)} scripts</span>
+                </p>
+              </div>
+              <button
+                onClick={() => setIsPricingOpen(true)}
+                className="ml-2 p-2 bg-indigo-600/20 text-indigo-600 rounded-lg hover:bg-indigo-600 hover:text-white transition-all"
+                title="Buy Credits"
               >
-                <div className="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-500/30">
-                  <Zap className="w-5 h-5 fill-current" />
-                </div>
-                <div>
-                  <p className="text-[10px] font-black text-indigo-400 uppercase tracking-widest leading-none mb-1.5">Credits Available</p>
-                  <p className="text-lg font-black leading-none">
-                    {user.credits} <span className="text-slate-400 text-xs font-bold">/ {Math.floor(user.credits / 20)} scripts</span>
-                  </p>
-                </div>
-              </motion.div>
-            </div>
-          )}
+                <ShoppingCart className="w-4 h-4" />
+              </button>
+            </motion.div>
+          </div>
         </div>
 
         <AnimatePresence mode="wait">
-          {view === 'auth' ? (
-            <AuthPage onAuthSuccess={handleAuthSuccess} />
-          ) : view === 'generator' ? (
+          {view === 'generator' ? (
             <motion.main
               key="generator"
               initial={{ opacity: 0, x: -20 }}
@@ -311,7 +272,7 @@ export default function App() {
               {/* Form Section */}
               <div className={`lg:col-span-5 transition-all duration-500 ${output ? 'lg:col-span-4' : 'lg:col-span-8 lg:col-start-3'}`}>
                 <div className="relative">
-                  {user && user.credits < 20 && (
+                  {user.credits < 20 && (
                     <div className="absolute inset-0 z-10 bg-white/80 backdrop-blur-sm rounded-[2.5rem] flex flex-col items-center justify-center p-8 text-center">
                       <div className="w-16 h-16 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-600 mb-4">
                         <Zap className="w-8 h-8 fill-current" />
@@ -319,9 +280,11 @@ export default function App() {
                       <h3 className="text-xl font-black text-slate-900 mb-2">Credits Exhausted</h3>
                       <p className="text-slate-500 font-medium mb-6">You need at least 20 credits to generate a script.</p>
                       <button
-                        className="px-8 py-3 bg-indigo-600 text-white rounded-xl font-black shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition-all"
+                        onClick={() => setIsPricingOpen(true)}
+                        className="px-8 py-4 bg-indigo-600 text-white rounded-2xl font-black shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition-all flex items-center gap-2"
                       >
-                        Buy Credits (Coming Soon)
+                        <ShoppingCart className="w-5 h-5" />
+                        Buy Credits
                       </button>
                     </div>
                   )}
@@ -414,9 +377,9 @@ export default function App() {
             </motion.div>
           ) : (
             <SettingsSection 
-              user={user!} 
+              user={user} 
               onUpdate={(updated) => setUser(updated)} 
-              onLogout={() => setIsLogoutModalOpen(true)}
+              onLogout={() => {}} 
             />
           )}
         </AnimatePresence>
@@ -437,10 +400,10 @@ export default function App() {
           message="Are you sure you want to delete all your saved scripts? This action is permanent."
         />
 
-        <LogoutModal
-          isOpen={isLogoutModalOpen}
-          onClose={() => setIsLogoutModalOpen(false)}
-          onConfirm={handleLogout}
+        <PricingModal
+          isOpen={isPricingOpen}
+          onClose={() => setIsPricingOpen(false)}
+          onBuy={handleBuyCredits}
         />
       </div>
     </div>
