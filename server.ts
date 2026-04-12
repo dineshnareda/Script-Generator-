@@ -37,6 +37,11 @@ async function startServer() {
   app.use(express.json({ limit: '10mb' }));
   app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
+  // Health check
+  app.get("/api/health", (req, res) => {
+    res.json({ status: "ok", timestamp: new Date().toISOString() });
+  });
+
   // Middleware to verify JWT
   const authenticateToken = (req: any, res: any, next: any) => {
     const authHeader = req.headers['authorization'];
