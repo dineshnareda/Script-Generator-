@@ -66,7 +66,17 @@ export default function AuthPage({ onAuthSuccess }: AuthPageProps) {
               'Authorization': `Bearer ${idToken}`
             }
           });
-          const data = await res.json();
+          
+          let data;
+          const contentType = res.headers.get("content-type");
+          if (contentType && contentType.includes("application/json")) {
+            data = await res.json();
+          } else {
+            const text = await res.text();
+            console.error('Non-JSON response:', text);
+            throw new Error(`Server error (${res.status}): The server returned an unexpected response.`);
+          }
+
           if (!res.ok) throw new Error(data.error || 'Sync failed');
           onAuthSuccess(data);
         } else {
@@ -77,7 +87,15 @@ export default function AuthPage({ onAuthSuccess }: AuthPageProps) {
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ email }),
             });
-            const data = await res.json();
+            
+            let data;
+            const contentType = res.headers.get("content-type");
+            if (contentType && contentType.includes("application/json")) {
+              data = await res.json();
+            } else {
+              throw new Error(`Server error (${res.status})`);
+            }
+
             if (!res.ok) throw new Error(data.error || 'Failed to send OTP');
             setIsOtpSent(true);
           } else {
@@ -86,7 +104,15 @@ export default function AuthPage({ onAuthSuccess }: AuthPageProps) {
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ email, code: otp }),
             });
-            const data = await res.json();
+            
+            let data;
+            const contentType = res.headers.get("content-type");
+            if (contentType && contentType.includes("application/json")) {
+              data = await res.json();
+            } else {
+              throw new Error(`Server error (${res.status})`);
+            }
+
             if (!res.ok) throw new Error(data.error || 'Invalid OTP');
             onAuthSuccess(data);
           }
@@ -109,7 +135,17 @@ export default function AuthPage({ onAuthSuccess }: AuthPageProps) {
           },
           body: JSON.stringify({ name })
         });
-        const data = await res.json();
+        
+        let data;
+        const contentType = res.headers.get("content-type");
+        if (contentType && contentType.includes("application/json")) {
+          data = await res.json();
+        } else {
+          const text = await res.text();
+          console.error('Non-JSON response:', text);
+          throw new Error(`Server error (${res.status}): The server returned an unexpected response. Please check if the backend is running correctly.`);
+        }
+
         if (!res.ok) throw new Error(data.error || 'Registration sync failed');
         
         // Sign out after registration so they have to log in

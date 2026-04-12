@@ -58,9 +58,13 @@ export default function SettingsSection({ user, onUpdate, onLogout }: SettingsSe
         },
         body: JSON.stringify({ theme }),
       });
+      
       if (res.ok) {
-        const updatedUser = await res.json();
-        onUpdate(updatedUser);
+        const contentType = res.headers.get("content-type");
+        if (contentType && contentType.includes("application/json")) {
+          const updatedUser = await res.json();
+          onUpdate(updatedUser);
+        }
       }
     } catch (err) {
       console.error('Failed to update theme', err);
@@ -130,11 +134,17 @@ export default function SettingsSection({ user, onUpdate, onLogout }: SettingsSe
         },
         body: JSON.stringify({ name, profilePic }),
       });
+      
       if (res.ok) {
-        const updatedUser = await res.json();
-        onUpdate(updatedUser);
-        setSaveStatus('success');
-        setTimeout(() => setSaveStatus('idle'), 3000);
+        const contentType = res.headers.get("content-type");
+        if (contentType && contentType.includes("application/json")) {
+          const updatedUser = await res.json();
+          onUpdate(updatedUser);
+          setSaveStatus('success');
+          setTimeout(() => setSaveStatus('idle'), 3000);
+        } else {
+          setSaveStatus('error');
+        }
       } else {
         setSaveStatus('error');
       }

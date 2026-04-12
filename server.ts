@@ -275,6 +275,11 @@ async function startServer() {
     res.json({ credits: user.credits, exhaustedCredits: user.exhaustedCredits, usageHistory: user.usageHistory });
   });
 
+  // Catch-all for API routes that don't exist
+  app.all("/api/*all", (req, res) => {
+    res.status(404).json({ error: `API route ${req.method} ${req.url} not found` });
+  });
+
   // Vite middleware for development
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({

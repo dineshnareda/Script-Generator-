@@ -67,8 +67,16 @@ export default function App() {
       const res = await fetch('/api/user/profile', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
+      
+      let userData;
+      const contentType = res.headers.get("content-type");
+      if (contentType && contentType.includes("application/json")) {
+        userData = await res.json();
+      } else {
+        throw new Error(`Server error (${res.status})`);
+      }
+
       if (res.ok) {
-        const userData = await res.json();
         setUser(userData);
         setView('generator');
       } else {
@@ -111,8 +119,14 @@ export default function App() {
       });
 
       if (!creditRes.ok) {
-        const creditData = await creditRes.json();
-        throw new Error(creditData.error || 'Failed to use credits');
+        let creditData;
+        const contentType = creditRes.headers.get("content-type");
+        if (contentType && contentType.includes("application/json")) {
+          creditData = await creditRes.json();
+        } else {
+          throw new Error(`Server error (${creditRes.status})`);
+        }
+        throw new Error(creditData?.error || 'Failed to use credits');
       }
 
       const updatedUserData = await creditRes.json();
