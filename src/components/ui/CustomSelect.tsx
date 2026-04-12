@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { ChevronDown, Check } from 'lucide-react';
+import { ChevronDown, Check, Info } from 'lucide-react';
+import Tooltip from './Tooltip';
 
 interface Option {
   value: string;
@@ -17,9 +18,10 @@ interface CustomSelectProps {
   onChange: (value: string) => void;
   icon?: any;
   className?: string;
+  tooltip?: string;
 }
 
-export default function CustomSelect({ label, options, value, onChange, icon: LabelIcon, className = '' }: CustomSelectProps) {
+export default function CustomSelect({ label, options, value, onChange, icon: LabelIcon, className = '', tooltip }: CustomSelectProps) {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const selectedOption = options.find(opt => opt.value === value) || options[0];
@@ -36,9 +38,14 @@ export default function CustomSelect({ label, options, value, onChange, icon: La
 
   return (
     <div className={`space-y-3 relative ${className}`} ref={containerRef}>
-      <label className="flex items-center gap-2 text-sm font-black text-slate-700 uppercase tracking-widest">
+      <label className="flex items-center gap-1.5 text-sm font-black text-slate-700 uppercase tracking-widest">
         {LabelIcon && <LabelIcon className="w-4 h-4 text-indigo-500" />}
-        {label}
+        <span>{label}</span>
+        {tooltip && (
+          <Tooltip content={tooltip}>
+            <Info className="w-3.5 h-3.5 text-slate-400 cursor-help hover:text-indigo-500 transition-colors" />
+          </Tooltip>
+        )}
       </label>
       
       <button

@@ -26,7 +26,7 @@ export default function Tooltip({ content, children, position = 'top' }: Tooltip
 
   return (
     <div 
-      className="relative inline-block w-full"
+      className="relative inline-flex"
       onMouseEnter={() => setIsVisible(true)}
       onMouseLeave={() => setIsVisible(false)}
     >

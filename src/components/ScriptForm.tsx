@@ -18,7 +18,8 @@ import {
   Lightbulb,
   HelpCircle,
   Flame,
-  Users
+  Users,
+  Info
 } from 'lucide-react';
 import { 
   ScriptInput, 
@@ -30,6 +31,7 @@ import {
   HookType 
 } from '../types';
 import CustomSelect from './ui/CustomSelect';
+import Tooltip from './ui/Tooltip';
 
 interface ScriptFormProps {
   onSubmit: (input: ScriptInput) => void;
@@ -113,15 +115,18 @@ export default function ScriptForm({ onSubmit, isLoading }: ScriptFormProps) {
     >
       {/* Topic Input */}
       <div className="space-y-3">
-        <label className="flex items-center justify-between text-sm font-black text-slate-700 uppercase tracking-widest">
-          <div className="flex items-center gap-2">
+        <div className="flex items-center justify-between">
+          <label className="flex items-center gap-1.5 text-sm font-black text-slate-700 uppercase tracking-widest">
             <Sparkles className="w-4 h-4 text-indigo-500" />
-            Topic / Idea
-          </div>
+            <span>Topic / Idea</span>
+            <Tooltip content="What is your video about? Be specific for better results.">
+              <Info className="w-3.5 h-3.5 text-slate-400 cursor-help hover:text-indigo-500 transition-colors" />
+            </Tooltip>
+          </label>
           <span className={`text-[10px] ${formData.topic.length >= 90 ? 'text-red-500' : 'text-slate-400'}`}>
             {formData.topic.length}/100
           </span>
-        </label>
+        </div>
         <textarea
           required
           maxLength={100}
@@ -139,6 +144,7 @@ export default function ScriptForm({ onSubmit, isLoading }: ScriptFormProps) {
           options={platformOptions}
           value={formData.platform}
           onChange={(val) => setFormData({ ...formData, platform: val as Platform })}
+          tooltip="Optimizes the script structure and SEO for the specific platform's algorithm."
         />
 
         <CustomSelect
@@ -147,6 +153,7 @@ export default function ScriptForm({ onSubmit, isLoading }: ScriptFormProps) {
           options={toneOptions}
           value={formData.tone}
           onChange={(val) => setFormData({ ...formData, tone: val as Tone })}
+          tooltip="Sets the emotional vibe of the script to resonate with your audience."
         />
 
         <CustomSelect
@@ -155,6 +162,7 @@ export default function ScriptForm({ onSubmit, isLoading }: ScriptFormProps) {
           options={languageOptions}
           value={formData.language}
           onChange={(val) => setFormData({ ...formData, language: val as Language })}
+          tooltip="The primary language for the script and captions."
         />
 
         <CustomSelect
@@ -163,6 +171,7 @@ export default function ScriptForm({ onSubmit, isLoading }: ScriptFormProps) {
           options={durationOptions}
           value={formData.duration}
           onChange={(val) => setFormData({ ...formData, duration: val as Duration })}
+          tooltip="Controls the length and pacing of the content."
         />
 
         <CustomSelect
@@ -171,6 +180,7 @@ export default function ScriptForm({ onSubmit, isLoading }: ScriptFormProps) {
           options={contentTypeOptions}
           value={formData.contentType}
           onChange={(val) => setFormData({ ...formData, contentType: val as ContentType })}
+          tooltip="Defines the format and structure of the script (e.g., educational vs. comedy)."
         />
 
         <CustomSelect
@@ -179,20 +189,24 @@ export default function ScriptForm({ onSubmit, isLoading }: ScriptFormProps) {
           options={hookTypeOptions}
           value={formData.hookType}
           onChange={(val) => setFormData({ ...formData, hookType: val as HookType })}
+          tooltip="The opening strategy to grab attention in the first 3 seconds."
         />
       </div>
 
       {/* Target Audience */}
       <div className="space-y-3">
-        <label className="flex items-center justify-between text-sm font-black text-slate-700 uppercase tracking-widest">
-          <div className="flex items-center gap-2">
+        <div className="flex items-center justify-between">
+          <label className="flex items-center gap-1.5 text-sm font-black text-slate-700 uppercase tracking-widest">
             <Users className="w-4 h-4 text-indigo-500" />
-            Target Audience (Optional)
-          </div>
+            <span>Target Audience (Optional)</span>
+            <Tooltip content="Helps the AI tailor the language and references to a specific group.">
+              <Info className="w-3.5 h-3.5 text-slate-400 cursor-help hover:text-indigo-500 transition-colors" />
+            </Tooltip>
+          </label>
           <span className={`text-[10px] ${formData.audience?.length === 20 ? 'text-red-500' : 'text-slate-400'}`}>
             {formData.audience?.length || 0}/20
           </span>
-        </label>
+        </div>
         <input
           type="text"
           maxLength={20}
