@@ -123,13 +123,13 @@ export default function ScriptForm({ onSubmit, isLoading }: ScriptFormProps) {
               <Info className="w-3.5 h-3.5 text-slate-400 cursor-help hover:text-indigo-500 transition-colors" />
             </Tooltip>
           </label>
-          <span className={`text-[10px] ${formData.topic.length >= 90 ? 'text-red-500' : 'text-slate-400'}`}>
-            {formData.topic.length}/100
+          <span className={`text-[10px] ${formData.topic.length >= 180 ? 'text-red-500' : 'text-slate-400'}`}>
+            {formData.topic.length}/200
           </span>
         </div>
         <textarea
           required
-          maxLength={100}
+          maxLength={200}
           value={formData.topic}
           onChange={(e) => setFormData({ ...formData, topic: e.target.value })}
           placeholder="e.g., 5 Morning Habits for Productivity, Why AI won't replace you..."
@@ -203,13 +203,13 @@ export default function ScriptForm({ onSubmit, isLoading }: ScriptFormProps) {
               <Info className="w-3.5 h-3.5 text-slate-400 cursor-help hover:text-indigo-500 transition-colors" />
             </Tooltip>
           </label>
-          <span className={`text-[10px] ${formData.audience?.length === 20 ? 'text-red-500' : 'text-slate-400'}`}>
-            {formData.audience?.length || 0}/20
+          <span className={`text-[10px] ${formData.audience?.length === 80 ? 'text-red-500' : 'text-slate-400'}`}>
+            {formData.audience?.length || 0}/80
           </span>
         </div>
         <input
           type="text"
-          maxLength={20}
+          maxLength={80}
           value={formData.audience}
           onChange={(e) => setFormData({ ...formData, audience: e.target.value })}
           placeholder="e.g., Students, Entrepreneurs, Fitness Enthusiasts..."
