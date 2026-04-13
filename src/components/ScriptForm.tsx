@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { motion } from 'motion/react';
+import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import { 
   Video, 
   Type as TypeIcon, 
@@ -19,7 +19,10 @@ import {
   HelpCircle,
   Flame,
   Users,
-  Info
+  Info,
+  Mic,
+  MicOff,
+  ChevronDown
 } from 'lucide-react';
 import { 
   ScriptInput, 
@@ -36,9 +39,10 @@ import Tooltip from './ui/Tooltip';
 interface ScriptFormProps {
   onSubmit: (input: ScriptInput) => void;
   isLoading: boolean;
+  userId: string;
 }
 
-export default function ScriptForm({ onSubmit, isLoading }: ScriptFormProps) {
+export default function ScriptForm({ onSubmit, isLoading, userId }: ScriptFormProps) {
   const [formData, setFormData] = useState<ScriptInput>({
     topic: '',
     platform: 'Instagram',
@@ -49,6 +53,42 @@ export default function ScriptForm({ onSubmit, isLoading }: ScriptFormProps) {
     hookType: 'Question',
     audience: ''
   });
+
+  const [isListening, setIsListening] = useState(false);
+  const [presets, setPresets] = useState<string[]>([]);
+  const [showPresets, setShowPresets] = useState(false);
+
+  useEffect(() => {
+    const saved = localStorage.getItem(`presets_${userId}`);
+    if (saved) setPresets(JSON.parse(saved));
+  }, [userId]);
+
+  const toggleListening = () => {
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+      alert('Voice recognition is not supported in this browser.');
+      return;
+    }
+
+    const SpeechRecognition = (window as any).webkitSpeechRecognition || (window as any).SpeechRecognition;
+    const recognition = new SpeechRecognition();
+
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.lang = formData.language === 'Hindi' ? 'hi-IN' : 'en-US';
+
+    recognition.onstart = () => setIsListening(true);
+    recognition.onend = () => setIsListening(false);
+    recognition.onresult = (event: any) => {
+      const transcript = event.results[0][0].transcript;
+      setFormData(prev => ({ ...prev, topic: prev.topic + ' ' + transcript }));
+    };
+
+    if (isListening) {
+      recognition.stop();
+    } else {
+      recognition.start();
+    }
+  };
 
   const platformOptions = [
     { 
@@ -123,18 +163,70 @@ export default function ScriptForm({ onSubmit, isLoading }: ScriptFormProps) {
               <Info className="w-3.5 h-3.5 text-slate-400 cursor-help hover:text-indigo-500 transition-colors" />
             </Tooltip>
           </label>
-          <span className={`text-[10px] ${formData.topic.length >= 180 ? 'text-red-500' : 'text-slate-400'}`}>
-            {formData.topic.length}/200
-          </span>
+          <div className="flex items-center gap-3">
+            {presets.length > 0 && (
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setShowPresets(!showPresets)}
+                  className="flex items-center gap-1 px-3 py-1 bg-indigo-50 text-indigo-600 rounded-full text-[10px] font-black hover:bg-indigo-100 transition-all"
+                >
+                  PRESETS
+                  <ChevronDown className={`w-3 h-3 transition-transform ${showPresets ? 'rotate-180' : ''}`} />
+                </button>
+                <AnimatePresence>
+                  {showPresets && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 5 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 5 }}
+                      className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-xl border border-slate-100 z-50 p-2"
+                    >
+                      {presets.map((p, i) => (
+                        <button
+                          key={i}
+                          type="button"
+                          onClick={() => {
+                            setFormData({ ...formData, topic: p });
+                            setShowPresets(false);
+                          }}
+                          className="w-full text-left px-3 py-2 hover:bg-slate-50 rounded-lg text-xs font-bold text-slate-600 truncate"
+                        >
+                          {p}
+                        </button>
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            )}
+            <span className={`text-[10px] ${formData.topic.length >= 180 ? 'text-red-500' : 'text-slate-400'}`}>
+              {formData.topic.length}/200
+            </span>
+          </div>
         </div>
-        <textarea
-          required
-          maxLength={200}
-          value={formData.topic}
-          onChange={(e) => setFormData({ ...formData, topic: e.target.value })}
-          placeholder="e.g., 5 Morning Habits for Productivity, Why AI won't replace you..."
-          className="w-full px-6 py-5 rounded-2xl border-2 border-slate-100 focus:border-indigo-500 focus:bg-white transition-all resize-none h-32 font-bold text-slate-700 outline-none bg-slate-50/50 placeholder:text-slate-300"
-        />
+        <div className="relative">
+          <textarea
+            required
+            maxLength={200}
+            value={formData.topic}
+            onChange={(e) => setFormData({ ...formData, topic: e.target.value })}
+            placeholder="e.g., 5 Morning Habits for Productivity, Why AI won't replace you..."
+            className="w-full px-6 py-5 rounded-2xl border-2 border-slate-100 focus:border-indigo-500 focus:bg-white transition-all resize-none h-32 font-bold text-slate-700 outline-none bg-slate-50/50 placeholder:text-slate-300"
+          />
+          <button
+            type="button"
+            onClick={toggleListening}
+            className={`absolute bottom-4 right-4 p-3 rounded-xl transition-all ${
+              isListening 
+                ? 'bg-red-500 text-white animate-pulse shadow-lg shadow-red-500/30' 
+                : 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-lg shadow-indigo-500/20'
+            }`}
+            title={isListening ? 'Stop Listening' : 'Voice Command'}
+          >
+            {isListening ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

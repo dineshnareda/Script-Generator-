@@ -208,7 +208,11 @@ export default function App() {
               {/* Form Section */}
               <div className={`lg:col-span-5 transition-all duration-500 ${output ? 'lg:col-span-4' : 'lg:col-span-8 lg:col-start-3'}`}>
                 <div className="relative">
-                  <ScriptForm onSubmit={handleGenerate} isLoading={isLoading} />
+                  <ScriptForm 
+                    onSubmit={handleGenerate} 
+                    isLoading={isLoading} 
+                    userId={user.id}
+                  />
                 </div>
                 
                 <AnimatePresence>
@@ -249,6 +253,10 @@ export default function App() {
                     <ScriptOutput 
                       output={output} 
                       onUpdate={handleUpdateOutput}
+                      onRegenerate={() => {
+                        const script = history.find(s => s.id === currentScriptId);
+                        if (script) handleRegenerateHistory(script);
+                      }}
                     />
                     <AdBanner adSlot="9266679211" className="mt-8" />
                   </motion.div>

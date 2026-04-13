@@ -13,18 +13,18 @@ import {
   Edit2,
   Save,
   X,
-  Bold,
-  Italic,
-  List
+  RefreshCw,
+  ArrowUp
 } from 'lucide-react';
 import { ScriptOutput as ScriptOutputType } from '../types';
 
 interface ScriptOutputProps {
   output: ScriptOutputType;
   onUpdate: (updatedOutput: ScriptOutputType) => void;
+  onRegenerate: () => void;
 }
 
-export default function ScriptOutput({ output, onUpdate }: ScriptOutputProps) {
+export default function ScriptOutput({ output, onUpdate, onRegenerate }: ScriptOutputProps) {
   const [copiedSection, setCopiedSection] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editedScript, setEditedScript] = useState(output.script);
@@ -48,41 +48,50 @@ export default function ScriptOutput({ output, onUpdate }: ScriptOutputProps) {
     setIsEditing(false);
   };
 
-  const insertMarkdown = (prefix: string, suffix: string = '') => {
-    if (!textareaRef.current) return;
-
-    const textarea = textareaRef.current;
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const text = textarea.value;
-    const selectedText = text.substring(start, end);
-    const before = text.substring(0, start);
-    const after = text.substring(end);
-
-    const newText = `${before}${prefix}${selectedText}${suffix}${after}`;
-    setEditedScript(newText);
-
-    // Reset focus and selection
-    setTimeout(() => {
-      textarea.focus();
-      const newCursorPos = start + prefix.length + selectedText.length + suffix.length;
-      textarea.setSelectionRange(newCursorPos, newCursorPos);
-    }, 0);
-  };
-
   const copyToClipboard = (text: string, section: string) => {
     navigator.clipboard.writeText(text);
     setCopiedSection(section);
     setTimeout(() => setCopiedSection(null), 2000);
   };
 
-  const CopyButton = ({ text, section }: { text: string; section: string }) => (
+  const copyAll = () => {
+    const allText = `
+HOOK:
+${output.hook}
+
+SCRIPT:
+${output.script}
+
+TITLES:
+${output.titles.join('\n')}
+
+CTA:
+${output.cta}
+
+KEYWORDS:
+${output.keywords.join(', ')}
+
+HASHTAGS:
+${output.hashtags.join(' ')}
+    `.trim();
+    copyToClipboard(allText, 'all');
+  };
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const CopyButton = ({ text, section, label }: { text: string; section: string; label?: string }) => (
     <button
       onClick={() => copyToClipboard(text, section)}
-      className="p-2 hover:bg-slate-100 rounded-lg transition-colors text-slate-400 hover:text-indigo-600"
-      title="Copy to clipboard"
+      className={`flex items-center gap-2 px-3 py-1.5 rounded-xl transition-all font-bold text-xs ${
+        copiedSection === section 
+          ? 'bg-green-500 text-white' 
+          : 'bg-slate-50 text-slate-500 hover:bg-indigo-50 hover:text-indigo-600'
+      }`}
     >
-      {copiedSection === section ? <Check className="w-5 h-5 text-green-500" /> : <Copy className="w-5 h-5" />}
+      {copiedSection === section ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+      {label || (copiedSection === section ? 'Copied!' : 'Copy')}
     </button>
   );
 
@@ -113,63 +122,36 @@ export default function ScriptOutput({ output, onUpdate }: ScriptOutputProps) {
             <Layout className="w-5 h-5" />
             <span>FULL SCRIPT</span>
           </div>
-          <div className="flex items-center gap-4">
-            {isEditing && (
-              <div className="flex items-center gap-1 bg-slate-50 p-1 rounded-lg border border-slate-200">
+          <div className="flex items-center gap-2">
+            {isEditing ? (
+              <>
                 <button
-                  onClick={() => insertMarkdown('**', '**')}
-                  className="p-1.5 hover:bg-white hover:shadow-sm rounded transition-all text-slate-600"
-                  title="Bold"
+                  onClick={handleSave}
+                  className="flex items-center gap-1 px-3 py-1.5 bg-green-500 text-white rounded-lg text-sm font-bold hover:bg-green-600 transition-colors"
                 >
-                  <Bold className="w-4 h-4" />
+                  <Save className="w-4 h-4" />
+                  Save
                 </button>
                 <button
-                  onClick={() => insertMarkdown('_', '_')}
-                  className="p-1.5 hover:bg-white hover:shadow-sm rounded transition-all text-slate-600"
-                  title="Italic"
+                  onClick={handleCancel}
+                  className="flex items-center gap-1 px-3 py-1.5 bg-slate-100 text-slate-500 rounded-lg text-sm font-bold hover:bg-slate-200 transition-colors"
                 >
-                  <Italic className="w-4 h-4" />
+                  <X className="w-4 h-4" />
+                  Cancel
                 </button>
+              </>
+            ) : (
+              <>
                 <button
-                  onClick={() => insertMarkdown('\n- ')}
-                  className="p-1.5 hover:bg-white hover:shadow-sm rounded transition-all text-slate-600"
-                  title="Bullet List"
+                  onClick={() => setIsEditing(true)}
+                  className="flex items-center gap-2 px-3 py-1.5 bg-slate-50 text-slate-500 rounded-xl text-xs font-bold hover:bg-indigo-50 hover:text-indigo-600 transition-all"
                 >
-                  <List className="w-4 h-4" />
+                  <Edit2 className="w-3.5 h-3.5" />
+                  Edit
                 </button>
-              </div>
+                <CopyButton text={output.script} section="script" />
+              </>
             )}
-            <div className="flex items-center gap-2">
-              {isEditing ? (
-                <>
-                  <button
-                    onClick={handleSave}
-                    className="flex items-center gap-1 px-3 py-1.5 bg-green-500 text-white rounded-lg text-sm font-bold hover:bg-green-600 transition-colors"
-                  >
-                    <Save className="w-4 h-4" />
-                    Save
-                  </button>
-                  <button
-                    onClick={handleCancel}
-                    className="flex items-center gap-1 px-3 py-1.5 bg-slate-100 text-slate-500 rounded-lg text-sm font-bold hover:bg-slate-200 transition-colors"
-                  >
-                    <X className="w-4 h-4" />
-                    Cancel
-                  </button>
-                </>
-              ) : (
-                <>
-                  <button
-                    onClick={() => setIsEditing(true)}
-                    className="p-2 hover:bg-slate-100 rounded-lg transition-colors text-slate-400 hover:text-indigo-600"
-                    title="Edit script"
-                  >
-                    <Edit2 className="w-5 h-5" />
-                  </button>
-                  <CopyButton text={output.script} section="script" />
-                </>
-              )}
-            </div>
           </div>
         </div>
         <div className="relative">
@@ -183,10 +165,6 @@ export default function ScriptOutput({ output, onUpdate }: ScriptOutputProps) {
                 autoFocus
                 placeholder="Edit your script here..."
               />
-              <div className="flex items-center justify-between text-[10px] font-black text-slate-400 uppercase tracking-widest px-2">
-                <span>Markdown Supported</span>
-                <span>{editedScript.length} characters</span>
-              </div>
             </div>
           ) : (
             <div className="markdown-body text-slate-700 leading-relaxed font-medium p-2">
@@ -207,11 +185,19 @@ export default function ScriptOutput({ output, onUpdate }: ScriptOutputProps) {
         </div>
         <ul className="space-y-3">
           {output.titles.map((title, i) => (
-            <li key={i} className="flex items-start gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100 text-slate-700 font-semibold">
-              <span className="flex-shrink-0 w-6 h-6 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center text-xs">
-                {i + 1}
-              </span>
-              {title}
+            <li key={i} className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100 group">
+              <div className="flex items-start gap-3 text-slate-700 font-semibold">
+                <span className="flex-shrink-0 w-6 h-6 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center text-xs">
+                  {i + 1}
+                </span>
+                {title}
+              </div>
+              <button
+                onClick={() => copyToClipboard(title, `title-${i}`)}
+                className="p-1.5 opacity-0 group-hover:opacity-100 transition-opacity text-slate-400 hover:text-indigo-600"
+              >
+                {copiedSection === `title-${i}` ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
+              </button>
             </li>
           ))}
         </ul>
@@ -243,9 +229,15 @@ export default function ScriptOutput({ output, onUpdate }: ScriptOutputProps) {
           </div>
           <div className="flex flex-wrap gap-2">
             {output.keywords.map((kw, i) => (
-              <span key={i} className="px-3 py-1 bg-indigo-50 text-indigo-600 rounded-full text-sm font-medium">
+              <button
+                key={i}
+                onClick={() => copyToClipboard(kw, `kw-${i}`)}
+                className={`px-3 py-1 rounded-full text-sm font-medium transition-all ${
+                  copiedSection === `kw-${i}` ? 'bg-green-500 text-white' : 'bg-indigo-50 text-indigo-600 hover:bg-indigo-100'
+                }`}
+              >
                 {kw}
-              </span>
+              </button>
             ))}
           </div>
         </div>
@@ -261,12 +253,47 @@ export default function ScriptOutput({ output, onUpdate }: ScriptOutputProps) {
           </div>
           <div className="flex flex-wrap gap-2">
             {output.hashtags.map((tag, i) => (
-              <span key={i} className="text-indigo-500 font-bold hover:text-indigo-600 cursor-pointer">
+              <button
+                key={i}
+                onClick={() => copyToClipboard(tag, `tag-${i}`)}
+                className={`font-bold transition-all ${
+                  copiedSection === `tag-${i}` ? 'text-green-500' : 'text-indigo-500 hover:text-indigo-600'
+                }`}
+              >
                 {tag.startsWith('#') ? tag : `#${tag}`}
-              </span>
+              </button>
             ))}
           </div>
         </div>
+      </div>
+
+      {/* Bottom Action Bar */}
+      <div className="flex flex-wrap items-center justify-center gap-4 pt-8 border-t border-slate-100">
+        <button
+          onClick={onRegenerate}
+          className="flex items-center gap-2 px-8 py-4 bg-slate-900 text-white rounded-2xl font-black hover:bg-slate-800 transition-all shadow-xl shadow-slate-900/20"
+        >
+          <RefreshCw className="w-5 h-5" />
+          REGENERATE
+        </button>
+        <button
+          onClick={copyAll}
+          className={`flex items-center gap-2 px-8 py-4 rounded-2xl font-black transition-all shadow-xl ${
+            copiedSection === 'all' 
+              ? 'bg-green-500 text-white shadow-green-500/20' 
+              : 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-indigo-500/20'
+          }`}
+        >
+          {copiedSection === 'all' ? <Check className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
+          {copiedSection === 'all' ? 'COPIED ALL!' : 'COPY ALL'}
+        </button>
+        <button
+          onClick={scrollToTop}
+          className="p-4 bg-white text-slate-400 rounded-2xl border border-slate-100 hover:text-indigo-600 hover:border-indigo-100 transition-all shadow-lg"
+          title="Scroll to Top"
+        >
+          <ArrowUp className="w-6 h-6" />
+        </button>
       </div>
     </motion.div>
   );

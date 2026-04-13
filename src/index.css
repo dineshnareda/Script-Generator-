@@ -8,36 +8,56 @@
 @layer base {
   .dark {
     --bg-main: #020617;
-    --bg-card: #0f172a;
+    --bg-card: rgba(15, 23, 42, 0.7);
     --text-main: #f8fafc;
     --text-muted: #94a3b8;
-    --border-color: #1e293b;
-    --input-bg: rgba(255, 255, 255, 0.05);
+    --border-color: rgba(30, 41, 59, 0.5);
+    --input-bg: rgba(255, 255, 255, 0.03);
+    --glass-bg: rgba(15, 23, 42, 0.6);
+    --glass-border: rgba(255, 255, 255, 0.1);
   }
   .emerald {
     --bg-main: #022c22;
-    --bg-card: #064e3b;
+    --bg-card: rgba(6, 78, 59, 0.7);
     --text-main: #ecfdf5;
     --text-muted: #6ee7b7;
-    --border-color: #065f46;
-    --input-bg: rgba(255, 255, 255, 0.05);
+    --border-color: rgba(6, 95, 70, 0.5);
+    --input-bg: rgba(255, 255, 255, 0.03);
+    --glass-bg: rgba(6, 78, 59, 0.6);
+    --glass-border: rgba(255, 255, 255, 0.1);
   }
   .sunset {
     --bg-main: #2d1b2d;
-    --bg-card: #4a2c4a;
+    --bg-card: rgba(74, 44, 74, 0.7);
     --text-main: #fff5f5;
     --text-muted: #fbd38d;
-    --border-color: #704070;
-    --input-bg: rgba(255, 255, 255, 0.05);
+    --border-color: rgba(112, 64, 112, 0.5);
+    --input-bg: rgba(255, 255, 255, 0.03);
+    --glass-bg: rgba(74, 44, 74, 0.6);
+    --glass-border: rgba(255, 255, 255, 0.1);
   }
   .midnight {
     --bg-main: #0a0a0a;
-    --bg-card: #171717;
+    --bg-card: rgba(23, 23, 23, 0.7);
     --text-main: #f0f9ff;
     --text-muted: #7dd3fc;
-    --border-color: #262626;
-    --input-bg: rgba(255, 255, 255, 0.05);
+    --border-color: rgba(38, 38, 38, 0.5);
+    --input-bg: rgba(255, 255, 255, 0.03);
+    --glass-bg: rgba(23, 23, 23, 0.6);
+    --glass-border: rgba(255, 255, 255, 0.1);
   }
+}
+
+.glass-panel {
+  background: var(--glass-bg, rgba(255, 255, 255, 0.7));
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.2));
+}
+
+.dark .glass-panel, .emerald .glass-panel, .sunset .glass-panel, .midnight .glass-panel {
+  background: var(--glass-bg);
+  border-color: var(--glass-border);
 }
 
 .dark body, .emerald body, .sunset body, .midnight body { background-color: var(--bg-main); color: var(--text-main); }
