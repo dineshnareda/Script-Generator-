@@ -24,6 +24,9 @@ Language: ${input.language}
 Duration: ${input.duration}
 Content Type: ${input.contentType}
 Hook Type: ${input.hookType}
+Visual Style: ${input.visualStyle}
+CTA Goal: ${input.ctaGoal}
+Script Structure: ${input.scriptStructure}
 
 ---
 
@@ -34,6 +37,9 @@ ADVANCED VIRAL OPTIMIZATION:
 - Include pattern interrupts every few seconds (twists, curiosity loops, emotional spikes)
 - Use simple, relatable, and highly engaging language
 - Avoid generic or robotic responses
+- ${input.visualStyle !== 'None' ? `Tailor the visual descriptions in the script to match the Visual Style: ${input.visualStyle}` : 'Use a standard, engaging visual style'}
+- ${input.scriptStructure !== 'None' ? `Ensure the script follows the Script Structure: ${input.scriptStructure}` : 'Use a natural, high-retention script structure'}
+- ${input.ctaGoal !== 'None' ? `Align the final Call To Action with the CTA Goal: ${input.ctaGoal}` : 'Include a natural call to action that encourages engagement'}
 
 ---
 

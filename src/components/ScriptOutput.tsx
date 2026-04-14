@@ -15,7 +15,9 @@ import {
   X,
   RefreshCw,
   ArrowUp,
-  FileDown
+  FileDown,
+  Undo2,
+  Redo2
 } from 'lucide-react';
 import { ScriptOutput as ScriptOutputType } from '../types';
 import { jsPDF } from 'jspdf';
@@ -32,12 +34,52 @@ export default function ScriptOutput({ output, onUpdate, onRegenerate }: ScriptO
   const [isEditing, setIsEditing] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [editedScript, setEditedScript] = useState(output.script);
+  const [history, setHistory] = useState<string[]>([output.script]);
+  const [historyIndex, setHistoryIndex] = useState(0);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     setEditedScript(output.script);
+    setHistory([output.script]);
+    setHistoryIndex(0);
     setIsEditing(false);
   }, [output]);
+
+  const handleScriptChange = (newText: string) => {
+    setEditedScript(newText);
+    
+    // Only add to history if the text actually changed
+    if (newText !== history[historyIndex]) {
+      const newHistory = history.slice(0, historyIndex + 1);
+      newHistory.push(newText);
+      
+      // Limit history size to 50 steps
+      if (newHistory.length > 50) {
+        newHistory.shift();
+        setHistory(newHistory);
+        setHistoryIndex(newHistory.length - 1);
+      } else {
+        setHistory(newHistory);
+        setHistoryIndex(newHistory.length - 1);
+      }
+    }
+  };
+
+  const undo = () => {
+    if (historyIndex > 0) {
+      const newIndex = historyIndex - 1;
+      setHistoryIndex(newIndex);
+      setEditedScript(history[newIndex]);
+    }
+  };
+
+  const redo = () => {
+    if (historyIndex < history.length - 1) {
+      const newIndex = historyIndex + 1;
+      setHistoryIndex(newIndex);
+      setEditedScript(history[newIndex]);
+    }
+  };
 
   const handleSave = () => {
     onUpdate({
@@ -239,6 +281,32 @@ ${output.hashtags.join(' ')}
           <div className="flex items-center gap-2">
             {isEditing ? (
               <>
+                <div className="flex items-center gap-1 mr-2 pr-2 border-r border-slate-200">
+                  <button
+                    onClick={undo}
+                    disabled={historyIndex === 0}
+                    className={`p-1.5 rounded-lg transition-all ${
+                      historyIndex === 0 
+                        ? 'text-slate-300 cursor-not-allowed' 
+                        : 'text-slate-500 hover:bg-slate-100 hover:text-indigo-600'
+                    }`}
+                    title="Undo (Ctrl+Z)"
+                  >
+                    <Undo2 className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={redo}
+                    disabled={historyIndex === history.length - 1}
+                    className={`p-1.5 rounded-lg transition-all ${
+                      historyIndex === history.length - 1 
+                        ? 'text-slate-300 cursor-not-allowed' 
+                        : 'text-slate-500 hover:bg-slate-100 hover:text-indigo-600'
+                    }`}
+                    title="Redo (Ctrl+Y)"
+                  >
+                    <Redo2 className="w-4 h-4" />
+                  </button>
+                </div>
                 <button
                   onClick={handleSave}
                   className="flex items-center gap-1 px-3 py-1.5 bg-green-500 text-white rounded-lg text-sm font-bold hover:bg-green-600 transition-colors"
@@ -274,7 +342,16 @@ ${output.hashtags.join(' ')}
               <textarea
                 ref={textareaRef}
                 value={editedScript}
-                onChange={(e) => setEditedScript(e.target.value)}
+                onChange={(e) => handleScriptChange(e.target.value)}
+                onKeyDown={(e) => {
+                  if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+                    e.preventDefault();
+                    undo();
+                  } else if ((e.ctrlKey || e.metaKey) && e.key === 'y') {
+                    e.preventDefault();
+                    redo();
+                  }
+                }}
                 className="w-full h-96 px-6 py-5 rounded-2xl border-2 border-indigo-100 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none font-medium text-slate-700 leading-relaxed resize-none bg-slate-50/50 transition-all"
                 autoFocus
                 placeholder="Edit your script here..."

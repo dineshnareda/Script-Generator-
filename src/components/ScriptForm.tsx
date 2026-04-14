@@ -20,7 +20,22 @@ import {
   Flame,
   Users,
   Info,
-  ChevronDown
+  ChevronDown,
+  Camera,
+  MousePointer2,
+  Layout,
+  Palette,
+  Eye,
+  Monitor,
+  Share2,
+  MessageCircle,
+  Bookmark,
+  UserPlus,
+  ExternalLink,
+  List,
+  Shield,
+  History,
+  Minus
 } from 'lucide-react';
 import { 
   ScriptInput, 
@@ -29,7 +44,10 @@ import {
   Language, 
   Duration, 
   ContentType, 
-  HookType 
+  HookType,
+  VisualStyle,
+  CTAGoal,
+  ScriptStructure
 } from '../types';
 import CustomSelect from './ui/CustomSelect';
 import Tooltip from './ui/Tooltip';
@@ -49,6 +67,9 @@ export default function ScriptForm({ onSubmit, isLoading, userId }: ScriptFormPr
     duration: '30 sec',
     contentType: 'Story',
     hookType: 'Question',
+    visualStyle: 'Cinematic',
+    ctaGoal: 'Follow',
+    scriptStructure: 'Problem/Solution',
     audience: ''
   });
 
@@ -80,7 +101,8 @@ export default function ScriptForm({ onSubmit, isLoading, userId }: ScriptFormPr
     { value: 'Emotional', label: 'Emotional', icon: Heart, description: 'Heartfelt and touching' },
     { value: 'Motivational', label: 'Motivational', icon: Zap, description: 'Inspiring and energetic' },
     { value: 'Storytelling', label: 'Storytelling', icon: BookOpen, description: 'Narrative and engaging' },
-    { value: 'Shocking', label: 'Shocking', icon: AlertTriangle, description: 'Surprising and bold' }
+    { value: 'Shocking', label: 'Shocking', icon: AlertTriangle, description: 'Surprising and bold' },
+    { value: 'None', label: 'None', icon: Minus, description: 'No specific tone' }
   ];
 
   const languageOptions = [
@@ -100,14 +122,43 @@ export default function ScriptForm({ onSubmit, isLoading, userId }: ScriptFormPr
     { value: 'Facts', label: 'Facts', icon: Lightbulb, description: 'Informative and educational' },
     { value: 'Motivation', label: 'Motivation', icon: Flame, description: 'Daily inspiration' },
     { value: 'Comedy', label: 'Comedy', icon: Laugh, description: 'Skit or humor' },
-    { value: 'Educational', label: 'Educational', icon: BookOpen, description: 'Tutorial or guide' }
+    { value: 'Educational', label: 'Educational', icon: BookOpen, description: 'Tutorial or guide' },
+    { value: 'None', label: 'None', icon: Minus, description: 'General content' }
   ];
 
   const hookTypeOptions = [
     { value: 'Question', label: 'Question', icon: HelpCircle, description: 'Ask to engage' },
     { value: 'Shock', label: 'Shock', icon: AlertTriangle, description: 'Surprising statement' },
     { value: 'Relatable', label: 'Relatable', icon: Users, description: 'Common experience' },
-    { value: 'Bold', label: 'Bold', icon: Zap, description: 'Strong opinion' }
+    { value: 'Bold', label: 'Bold', icon: Zap, description: 'Strong opinion' },
+    { value: 'None', label: 'None', icon: Minus, description: 'No specific hook' }
+  ];
+
+  const visualStyleOptions = [
+    { value: 'Cinematic', label: 'Cinematic', icon: Monitor, description: 'High-quality, movie-like' },
+    { value: 'Vlog', label: 'Vlog', icon: Eye, description: 'Personal, raw, and direct' },
+    { value: 'Minimalist', label: 'Minimalist', icon: Layout, description: 'Clean, simple, focused' },
+    { value: 'High-Energy', label: 'High-Energy', icon: Zap, description: 'Fast-paced and loud' },
+    { value: 'Aesthetic', label: 'Aesthetic', icon: Palette, description: 'Beautiful and moody' },
+    { value: 'None', label: 'None', icon: Minus, description: 'No specific visual style' }
+  ];
+
+  const ctaGoalOptions = [
+    { value: 'Follow', label: 'Follow', icon: UserPlus, description: 'Grow your community' },
+    { value: 'Link in Bio', label: 'Link in Bio', icon: ExternalLink, description: 'Drive traffic' },
+    { value: 'Comment', label: 'Comment', icon: MessageCircle, description: 'Boost engagement' },
+    { value: 'Share', label: 'Share', icon: Share2, description: 'Increase reach' },
+    { value: 'Save', label: 'Save', icon: Bookmark, description: 'High value content' },
+    { value: 'None', label: 'None', icon: Minus, description: 'No specific CTA' }
+  ];
+
+  const scriptStructureOptions = [
+    { value: 'Problem/Solution', label: 'Problem/Solution', icon: AlertTriangle, description: 'Solve a pain point' },
+    { value: 'Listicle', label: 'Listicle', icon: List, description: 'Quick tips or steps' },
+    { value: 'Behind the Scenes', label: 'Behind the Scenes', icon: History, description: 'Show the process' },
+    { value: 'POV', label: 'POV', icon: Shield, description: 'Point of view narrative' },
+    { value: 'Tutorial', label: 'Tutorial', icon: BookOpen, description: 'Step-by-step guide' },
+    { value: 'None', label: 'None', icon: Minus, description: 'No specific structure' }
   ];
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -240,6 +291,33 @@ export default function ScriptForm({ onSubmit, isLoading, userId }: ScriptFormPr
           value={formData.hookType}
           onChange={(val) => setFormData({ ...formData, hookType: val as HookType })}
           tooltip="The opening strategy to grab attention in the first 3 seconds."
+        />
+
+        <CustomSelect
+          label="Visual Style"
+          icon={Camera}
+          options={visualStyleOptions}
+          value={formData.visualStyle}
+          onChange={(val) => setFormData({ ...formData, visualStyle: val as VisualStyle })}
+          tooltip="The visual aesthetic and editing style of the video."
+        />
+
+        <CustomSelect
+          label="CTA Goal"
+          icon={MousePointer2}
+          options={ctaGoalOptions}
+          value={formData.ctaGoal}
+          onChange={(val) => setFormData({ ...formData, ctaGoal: val as CTAGoal })}
+          tooltip="What you want the viewer to do at the end of the video."
+        />
+
+        <CustomSelect
+          label="Script Structure"
+          icon={Layout}
+          options={scriptStructureOptions}
+          value={formData.scriptStructure}
+          onChange={(val) => setFormData({ ...formData, scriptStructure: val as ScriptStructure })}
+          tooltip="The narrative framework used to organize the content."
         />
       </div>
 

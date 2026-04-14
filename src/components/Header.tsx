@@ -1,9 +1,24 @@
-import { Zap } from 'lucide-react';
+import { Zap, HelpCircle } from 'lucide-react';
 import { motion } from 'motion/react';
 
-export default function Header() {
+interface HeaderProps {
+  onOpenTutorial: () => void;
+}
+
+export default function Header({ onOpenTutorial }: HeaderProps) {
   return (
-    <header className="py-8 text-center">
+    <header className="py-8 text-center relative">
+      <div className="absolute top-0 right-0">
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={onOpenTutorial}
+          className="flex items-center gap-2 px-4 py-2 bg-white/50 backdrop-blur-sm border border-slate-100 rounded-xl text-xs font-black text-slate-500 hover:text-indigo-600 transition-all shadow-sm"
+        >
+          <HelpCircle className="w-4 h-4" />
+          TUTORIAL
+        </motion.button>
+      </div>
       <motion.div
         initial={{ opacity: 0, y: -20, scale: 0.9 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}

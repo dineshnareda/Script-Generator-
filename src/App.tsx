@@ -15,6 +15,7 @@ import HistoryList from './components/HistoryList';
 import ConfirmationModal from './components/ConfirmationModal';
 import AdBanner from './components/AdBanner';
 import SettingsSection from './components/SettingsSection';
+import TutorialModal from './components/TutorialModal';
 import { ScriptInput, ScriptOutput as ScriptOutputType, SavedScript, User, AppView } from './types';
 import { generateViralScript } from './services/gemini';
 import { storage } from './lib/storage';
@@ -38,6 +39,15 @@ export default function App() {
   const [searchTerm, setSearchTerm] = useState('');
   const [isClearModalOpen, setIsClearModalOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [isTutorialOpen, setIsTutorialOpen] = useState(false);
+
+  useEffect(() => {
+    const hasSeenTutorial = localStorage.getItem('hasSeenTutorial');
+    if (!hasSeenTutorial) {
+      setIsTutorialOpen(true);
+      localStorage.setItem('hasSeenTutorial', 'true');
+    }
+  }, []);
 
   useEffect(() => {
     setHistory(storage.getHistory(user.id));
@@ -167,7 +177,7 @@ export default function App() {
       'bg-slate-50 text-slate-900'
     }`}>
       <div className="container mx-auto px-4 py-8">
-        <Header />
+        <Header onOpenTutorial={() => setIsTutorialOpen(true)} />
 
         <AdBanner adSlot="9266679211" className="max-w-4xl mx-auto" />
 
@@ -333,6 +343,10 @@ export default function App() {
                 user={user} 
                 onUpdate={(updated) => setUser(updated)} 
                 onLogout={() => {}} 
+                onResetTutorial={() => {
+                  localStorage.removeItem('hasSeenTutorial');
+                  setIsTutorialOpen(true);
+                }}
               />
             </motion.div>
           )}
@@ -352,6 +366,11 @@ export default function App() {
           onConfirm={clearAllHistory}
           title="Clear All History?"
           message="Are you sure you want to delete all your saved scripts? This action is permanent."
+        />
+
+        <TutorialModal 
+          isOpen={isTutorialOpen} 
+          onClose={() => setIsTutorialOpen(false)} 
         />
       </div>
     </div>

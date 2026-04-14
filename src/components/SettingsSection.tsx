@@ -20,9 +20,10 @@ interface SettingsSectionProps {
   user: User;
   onUpdate: (updatedUser: User) => void;
   onLogout: () => void;
+  onResetTutorial: () => void;
 }
 
-export default function SettingsSection({ user, onUpdate }: SettingsSectionProps) {
+export default function SettingsSection({ user, onUpdate, onResetTutorial }: SettingsSectionProps) {
   const [activeTab, setActiveTab] = useState<'appearance' | 'instructions'>('appearance');
   const [presets, setPresets] = useState<string[]>(() => {
     const saved = localStorage.getItem(`presets_${user.id}`);
@@ -217,6 +218,21 @@ export default function SettingsSection({ user, onUpdate }: SettingsSectionProps
                     <p className="text-slate-400 font-bold">No presets saved yet</p>
                   </div>
                 )}
+              </div>
+
+              <div className="pt-8 border-t border-slate-100">
+                <div className="bg-slate-50 rounded-3xl p-6 flex items-center justify-between">
+                  <div>
+                    <h4 className="font-black text-slate-900 mb-1">Need a Refresher?</h4>
+                    <p className="text-sm text-slate-500 font-medium">Re-watch the onboarding tutorial to learn all features.</p>
+                  </div>
+                  <button
+                    onClick={onResetTutorial}
+                    className="px-6 py-3 bg-white border border-slate-200 text-slate-600 rounded-xl font-bold text-sm hover:bg-slate-50 transition-all shadow-sm"
+                  >
+                    Reset Tutorial
+                  </button>
+                </div>
               </div>
             </div>
           </motion.div>

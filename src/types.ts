@@ -1,9 +1,12 @@
 export type Platform = 'Instagram' | 'YouTube Shorts';
-export type Tone = 'Funny' | 'Emotional' | 'Motivational' | 'Storytelling' | 'Shocking';
+export type Tone = 'Funny' | 'Emotional' | 'Motivational' | 'Storytelling' | 'Shocking' | 'None';
 export type Language = 'Hindi' | 'English' | 'Hinglish';
 export type Duration = '15 sec' | '30 sec' | '60 sec';
-export type ContentType = 'Story' | 'Facts' | 'Motivation' | 'Comedy' | 'Educational';
-export type HookType = 'Question' | 'Shock' | 'Relatable' | 'Bold';
+export type ContentType = 'Story' | 'Facts' | 'Motivation' | 'Comedy' | 'Educational' | 'None';
+export type HookType = 'Question' | 'Shock' | 'Relatable' | 'Bold' | 'None';
+export type VisualStyle = 'Cinematic' | 'Vlog' | 'Minimalist' | 'High-Energy' | 'Aesthetic' | 'None';
+export type CTAGoal = 'Follow' | 'Link in Bio' | 'Comment' | 'Share' | 'Save' | 'None';
+export type ScriptStructure = 'Problem/Solution' | 'Listicle' | 'Behind the Scenes' | 'POV' | 'Tutorial' | 'None';
 export type Theme = 'light' | 'dark' | 'emerald' | 'sunset' | 'midnight';
 
 export interface ScriptInput {
@@ -15,6 +18,9 @@ export interface ScriptInput {
   duration: Duration;
   contentType: ContentType;
   hookType: HookType;
+  visualStyle: VisualStyle;
+  ctaGoal: CTAGoal;
+  scriptStructure: ScriptStructure;
 }
 
 export interface ScriptOutput {
