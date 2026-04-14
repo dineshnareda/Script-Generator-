@@ -53,11 +53,12 @@ export default function HistoryList({ history, onDelete, onSelect, onRegenerate 
 
   return (
     <div className="space-y-4">
-      {history.map((item) => (
+      {history.map((item, index) => (
         <motion.div
           key={item.id}
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial={{ opacity: 0, y: 10, scale: 0.98 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ delay: index * 0.05 }}
           className="group bg-white p-5 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all cursor-pointer relative overflow-hidden"
           onClick={() => onSelect(item)}
         >

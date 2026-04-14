@@ -78,10 +78,13 @@ export default function CustomSelect({ label, options, value, onChange, icon: La
             exit={{ opacity: 0, y: 10, scale: 0.95 }}
             className="absolute z-50 left-0 right-0 mt-2 p-2 bg-white rounded-3xl shadow-2xl border border-slate-100 overflow-hidden max-h-80 overflow-y-auto"
           >
-            <div className="space-y-1">
-              {options.map((option) => (
-                <button
+            <motion.div className="space-y-1">
+              {options.map((option, index) => (
+                <motion.button
                   key={option.value}
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: index * 0.03 }}
                   type="button"
                   onClick={() => {
                     onChange(option.value);
@@ -89,7 +92,7 @@ export default function CustomSelect({ label, options, value, onChange, icon: La
                   }}
                   className={`w-full flex items-center justify-between p-4 rounded-2xl transition-all group ${
                     value === option.value 
-                      ? 'bg-indigo-600 text-white' 
+                      ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20' 
                       : 'hover:bg-slate-50 text-slate-600'
                   }`}
                 >
@@ -115,9 +118,9 @@ export default function CustomSelect({ label, options, value, onChange, icon: La
                     </div>
                   </div>
                   {value === option.value && <Check className="w-5 h-5" />}
-                </button>
+                </motion.button>
               ))}
-            </div>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>

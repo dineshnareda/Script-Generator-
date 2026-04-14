@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   Settings as SettingsIcon, 
@@ -11,7 +11,8 @@ import {
   BookOpen,
   Plus,
   Trash2,
-  Sparkles
+  Sparkles,
+  Mic
 } from 'lucide-react';
 import { User, Theme } from '../types';
 import Tooltip from './ui/Tooltip';
@@ -55,6 +56,27 @@ export default function SettingsSection({ user, onUpdate }: SettingsSectionProps
     const updated = presets.filter((_, i) => i !== index);
     setPresets(updated);
     localStorage.setItem(`presets_${user.id}`, JSON.stringify(updated));
+  };
+
+  const [micPermission, setMicPermission] = useState<PermissionState | 'unknown'>('unknown');
+
+  useEffect(() => {
+    if (navigator.permissions && navigator.permissions.query) {
+      navigator.permissions.query({ name: 'microphone' as any }).then((result) => {
+        setMicPermission(result.state);
+        result.onchange = () => setMicPermission(result.state);
+      });
+    }
+  }, []);
+
+  const checkMicAccess = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      stream.getTracks().forEach(track => track.stop());
+      alert('Microphone access is working correctly!');
+    } catch (err: any) {
+      alert(`Microphone error: ${err.message}. Please click "Open in new tab" to fix this.`);
+    }
   };
 
   return (
@@ -155,6 +177,34 @@ export default function SettingsSection({ user, onUpdate }: SettingsSectionProps
             </div>
 
             <div className="space-y-6">
+              <div className="p-6 bg-indigo-50 rounded-3xl border border-indigo-100">
+                <h4 className="font-black text-indigo-900 mb-2 flex items-center gap-2">
+                  <Mic className="w-4 h-4" />
+                  Voice Command Guide
+                </h4>
+                <p className="text-sm text-indigo-700 font-medium leading-relaxed mb-4">
+                  If you encounter "Permission Denied" errors, please click the <strong>"Open in new tab"</strong> icon at the top right of this preview. Voice recognition works best when the app is running in its own dedicated tab.
+                </p>
+                <div className="flex items-center gap-4">
+                  <button
+                    onClick={checkMicAccess}
+                    className="px-4 py-2 bg-indigo-600 text-white rounded-xl font-bold text-xs hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-500/20"
+                  >
+                    Test Microphone
+                  </button>
+                  <div className="flex items-center gap-2 text-xs font-black uppercase tracking-widest">
+                    <span className="text-slate-400">Status:</span>
+                    <span className={
+                      micPermission === 'granted' ? 'text-green-500' :
+                      micPermission === 'denied' ? 'text-red-500' :
+                      'text-amber-500'
+                    }>
+                      {micPermission}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
               <div className="flex gap-3">
                 <input
                   type="text"

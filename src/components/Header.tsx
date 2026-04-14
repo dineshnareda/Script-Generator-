@@ -5,14 +5,18 @@ export default function Header() {
   return (
     <header className="py-8 text-center">
       <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="flex items-center justify-center gap-2 mb-4"
+        initial={{ opacity: 0, y: -20, scale: 0.9 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ type: "spring", duration: 0.8, bounce: 0.4 }}
+        className="flex items-center justify-center gap-3 mb-4"
       >
-        <div className="p-2 bg-indigo-600 rounded-xl shadow-lg shadow-indigo-500/20">
+        <motion.div 
+          whileHover={{ rotate: 15, scale: 1.1 }}
+          className="p-3 bg-indigo-600 rounded-2xl shadow-xl shadow-indigo-500/20"
+        >
           <Zap className="w-8 h-8 text-white" />
-        </div>
-        <h1 className="text-4xl font-bold tracking-tight text-slate-900">
+        </motion.div>
+        <h1 className="text-4xl md:text-5xl font-black tracking-tight text-slate-900">
           Viral Script <span className="text-indigo-600">Strategist</span>
         </h1>
       </motion.div>
