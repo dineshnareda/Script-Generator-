@@ -200,9 +200,10 @@ export default function App() {
           {view === 'generator' ? (
             <motion.main
               key="generator"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
+              initial={{ opacity: 0, y: 20, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -20, scale: 0.98 }}
+              transition={{ type: "spring", duration: 0.5, bounce: 0.3 }}
               className="grid grid-cols-1 lg:grid-cols-12 gap-12"
             >
               {/* Form Section */}
@@ -266,9 +267,10 @@ export default function App() {
           ) : view === 'history' ? (
             <motion.div
               key="history"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
+              initial={{ opacity: 0, y: 20, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -20, scale: 0.98 }}
+              transition={{ type: "spring", duration: 0.5, bounce: 0.3 }}
               className="max-w-4xl mx-auto"
             >
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
@@ -304,11 +306,19 @@ export default function App() {
               <AdBanner adSlot="9266679211" className="mt-12" />
             </motion.div>
           ) : (
-            <SettingsSection 
-              user={user} 
-              onUpdate={(updated) => setUser(updated)} 
-              onLogout={() => {}} 
-            />
+            <motion.div
+              key="settings"
+              initial={{ opacity: 0, y: 20, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -20, scale: 0.98 }}
+              transition={{ type: "spring", duration: 0.5, bounce: 0.3 }}
+            >
+              <SettingsSection 
+                user={user} 
+                onUpdate={(updated) => setUser(updated)} 
+                onLogout={() => {}} 
+              />
+            </motion.div>
           )}
         </AnimatePresence>
 
@@ -336,21 +346,31 @@ function NavButton({ active, onClick, icon: Icon, label, badge }: { active: bool
   return (
     <button
       onClick={onClick}
-      className={`flex items-center gap-2 px-6 py-3 rounded-[1.5rem] font-black text-sm transition-all ${
-        active 
-          ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/30' 
-          : 'text-slate-500 hover:bg-white/10 hover:text-indigo-600'
-      }`}
+      className="relative flex items-center gap-2 px-6 py-3 rounded-[1.5rem] font-black text-sm transition-all group overflow-hidden"
     >
-      <Icon className="w-4 h-4" />
-      {label}
-      {badge !== undefined && badge > 0 && (
-        <span className={`ml-1 px-1.5 py-0.5 rounded-lg text-[10px] font-black ${
-          active ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500'
-        }`}>
-          {badge}
-        </span>
-      )}
+      <AnimatePresence>
+        {active && (
+          <motion.div
+            layoutId="nav-active"
+            className="absolute inset-0 bg-indigo-600 shadow-lg shadow-indigo-500/30"
+            transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+          />
+        )}
+      </AnimatePresence>
+      
+      <div className={`relative z-10 flex items-center gap-2 transition-colors duration-300 ${
+        active ? 'text-white' : 'text-slate-500 group-hover:text-indigo-600'
+      }`}>
+        <Icon className="w-4 h-4" />
+        {label}
+        {badge !== undefined && badge > 0 && (
+          <span className={`ml-1 px-1.5 py-0.5 rounded-lg text-[10px] font-black transition-colors ${
+            active ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500'
+          }`}>
+            {badge}
+          </span>
+        )}
+      </div>
     </button>
   );
 }

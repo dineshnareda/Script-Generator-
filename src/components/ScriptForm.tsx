@@ -57,35 +57,57 @@ export default function ScriptForm({ onSubmit, isLoading, userId }: ScriptFormPr
   const [isListening, setIsListening] = useState(false);
   const [presets, setPresets] = useState<string[]>([]);
   const [showPresets, setShowPresets] = useState(false);
+  const [recognition, setRecognition] = useState<any>(null);
 
   useEffect(() => {
     const saved = localStorage.getItem(`presets_${userId}`);
     if (saved) setPresets(JSON.parse(saved));
+
+    // Initialize Speech Recognition once
+    if (('webkitSpeechRecognition' in window) || ('SpeechRecognition' in window)) {
+      const SpeechRecognition = (window as any).webkitSpeechRecognition || (window as any).SpeechRecognition;
+      const rec = new SpeechRecognition();
+      rec.continuous = false;
+      rec.interimResults = true;
+      
+      rec.onstart = () => setIsListening(true);
+      rec.onend = () => setIsListening(false);
+      rec.onerror = (event: any) => {
+        console.error('Speech recognition error', event.error);
+        setIsListening(false);
+        
+        if (event.error === 'not-allowed') {
+          alert('Microphone access was denied. Please allow microphone permissions in your browser or try opening the app in a new tab.');
+        } else if (event.error === 'service-not-allowed') {
+          alert('Speech recognition service is not allowed in this environment.');
+        }
+      };
+      
+      rec.onresult = (event: any) => {
+        const transcript = Array.from(event.results)
+          .map((result: any) => result[0])
+          .map((result: any) => result.transcript)
+          .join('');
+        
+        if (event.results[0].isFinal) {
+          setFormData(prev => ({ ...prev, topic: (prev.topic + ' ' + transcript).trim() }));
+        }
+      };
+      
+      setRecognition(rec);
+    }
   }, [userId]);
 
   const toggleListening = () => {
-    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+    if (!recognition) {
       alert('Voice recognition is not supported in this browser.');
       return;
     }
 
-    const SpeechRecognition = (window as any).webkitSpeechRecognition || (window as any).SpeechRecognition;
-    const recognition = new SpeechRecognition();
-
-    recognition.continuous = false;
-    recognition.interimResults = false;
-    recognition.lang = formData.language === 'Hindi' ? 'hi-IN' : 'en-US';
-
-    recognition.onstart = () => setIsListening(true);
-    recognition.onend = () => setIsListening(false);
-    recognition.onresult = (event: any) => {
-      const transcript = event.results[0][0].transcript;
-      setFormData(prev => ({ ...prev, topic: prev.topic + ' ' + transcript }));
-    };
-
     if (isListening) {
       recognition.stop();
     } else {
+      recognition.lang = formData.language === 'Hindi' ? 'hi-IN' : 'en-US';
       recognition.start();
     }
   };
@@ -217,14 +239,22 @@ export default function ScriptForm({ onSubmit, isLoading, userId }: ScriptFormPr
           <button
             type="button"
             onClick={toggleListening}
-            className={`absolute bottom-4 right-4 p-3 rounded-xl transition-all ${
+            className={`absolute bottom-4 right-4 p-3 rounded-xl transition-all group ${
               isListening 
-                ? 'bg-red-500 text-white animate-pulse shadow-lg shadow-red-500/30' 
+                ? 'bg-red-500 text-white shadow-lg shadow-red-500/30' 
                 : 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-lg shadow-indigo-500/20'
             }`}
             title={isListening ? 'Stop Listening' : 'Voice Command'}
           >
-            {isListening ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
+            {isListening ? (
+              <div className="relative">
+                <MicOff className="w-5 h-5 relative z-10" />
+                <div className="absolute inset-0 -m-2 bg-red-400 rounded-full animate-ping opacity-20" />
+                <div className="absolute inset-0 -m-4 bg-red-400 rounded-full animate-pulse opacity-10" />
+              </div>
+            ) : (
+              <Mic className="w-5 h-5" />
+            )}
           </button>
         </div>
       </div>

@@ -1,5 +1,5 @@
 {
   "name": "Viral Script Strategist",
   "description": "The ultimate AI-powered script generator for content creators. Create viral hooks, engaging scripts, and SEO-optimized strategies for Instagram Reels and YouTube Shorts to skyrocket your social media growth.",
-  "requestFramePermissions": []
+  "requestFramePermissions": ["microphone"]
 }
