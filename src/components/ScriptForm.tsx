@@ -20,8 +20,6 @@ import {
   Flame,
   Users,
   Info,
-  Mic,
-  MicOff,
   ChevronDown
 } from 'lucide-react';
 import { 
@@ -54,82 +52,13 @@ export default function ScriptForm({ onSubmit, isLoading, userId }: ScriptFormPr
     audience: ''
   });
 
-  const [isListening, setIsListening] = useState(false);
   const [presets, setPresets] = useState<string[]>([]);
   const [showPresets, setShowPresets] = useState(false);
-  const [recognition, setRecognition] = useState<any>(null);
-  const [micError, setMicError] = useState<string | null>(null);
 
   useEffect(() => {
     const saved = localStorage.getItem(`presets_${userId}`);
     if (saved) setPresets(JSON.parse(saved));
-
-    if (('webkitSpeechRecognition' in window) || ('SpeechRecognition' in window)) {
-      const SpeechRecognition = (window as any).webkitSpeechRecognition || (window as any).SpeechRecognition;
-      const rec = new SpeechRecognition();
-      rec.continuous = false;
-      rec.interimResults = true;
-      
-      rec.onstart = () => {
-        setIsListening(true);
-        setMicError(null);
-      };
-      rec.onend = () => setIsListening(false);
-      rec.onerror = (event: any) => {
-        console.error('Speech recognition error', event.error);
-        setIsListening(false);
-        
-        if (event.error === 'not-allowed') {
-          setMicError('Permission denied. Please click "Open in new tab" at the top right to enable microphone.');
-        } else {
-          setMicError(`Error: ${event.error}`);
-        }
-      };
-      
-      rec.onresult = (event: any) => {
-        const transcript = Array.from(event.results)
-          .map((result: any) => result[0])
-          .map((result: any) => result.transcript)
-          .join('');
-        
-        if (event.results[0].isFinal) {
-          setFormData(prev => ({ ...prev, topic: (prev.topic + ' ' + transcript).trim() }));
-        }
-      };
-      
-      setRecognition(rec);
-    }
   }, [userId]);
-
-  const toggleListening = async () => {
-    if (!recognition) {
-      alert('Voice recognition is not supported in this browser.');
-      return;
-    }
-
-    if (isListening) {
-      recognition.stop();
-      return;
-    }
-
-    setMicError(null);
-    try {
-      // Priming the permission
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      // Stop the stream immediately after getting permission
-      stream.getTracks().forEach(track => track.stop());
-      
-      recognition.lang = formData.language === 'Hindi' ? 'hi-IN' : 'en-US';
-      recognition.start();
-    } catch (err: any) {
-      console.error('Microphone access error:', err);
-      if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
-        setMicError('Microphone access denied. Try opening the app in a new tab.');
-      } else {
-        setMicError('Could not access microphone. Check your connection.');
-      }
-    }
-  };
 
   const platformOptions = [
     { 
@@ -255,46 +184,6 @@ export default function ScriptForm({ onSubmit, isLoading, userId }: ScriptFormPr
             placeholder="e.g., 5 Morning Habits for Productivity, Why AI won't replace you..."
             className="w-full px-6 py-5 rounded-2xl border-2 border-slate-100 focus:border-indigo-500 focus:bg-white transition-all resize-none h-32 font-bold text-slate-700 outline-none bg-slate-50/50 placeholder:text-slate-300"
           />
-          <div className="absolute bottom-4 right-4 flex flex-col items-end gap-2">
-            <AnimatePresence>
-              {micError && (
-                <motion.div
-                  initial={{ opacity: 0, x: 10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0 }}
-                  className="bg-red-500 text-white text-[10px] font-bold px-3 py-2 rounded-xl shadow-lg max-w-[220px] text-center flex flex-col gap-2"
-                >
-                  <span>{micError}</span>
-                  <button 
-                    onClick={() => window.open(window.location.href, '_blank')}
-                    className="bg-white text-red-500 px-2 py-1 rounded-lg hover:bg-red-50 transition-colors"
-                  >
-                    Open in New Tab to Fix
-                  </button>
-                </motion.div>
-              )}
-            </AnimatePresence>
-            <button
-              type="button"
-              onClick={toggleListening}
-              className={`p-3 rounded-xl transition-all group ${
-                isListening 
-                  ? 'bg-red-500 text-white shadow-lg shadow-red-500/30' 
-                  : 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-lg shadow-indigo-500/20'
-              }`}
-              title={isListening ? 'Stop Listening' : 'Voice Command'}
-            >
-              {isListening ? (
-                <div className="relative">
-                  <MicOff className="w-5 h-5 relative z-10" />
-                  <div className="absolute inset-0 -m-2 bg-red-400 rounded-full animate-ping opacity-20" />
-                  <div className="absolute inset-0 -m-4 bg-red-400 rounded-full animate-pulse opacity-10" />
-                </div>
-              ) : (
-                <Mic className="w-5 h-5" />
-              )}
-            </button>
-          </div>
         </div>
       </div>
 

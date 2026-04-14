@@ -11,8 +11,7 @@ import {
   BookOpen,
   Plus,
   Trash2,
-  Sparkles,
-  Mic
+  Sparkles
 } from 'lucide-react';
 import { User, Theme } from '../types';
 import Tooltip from './ui/Tooltip';
@@ -58,27 +57,6 @@ export default function SettingsSection({ user, onUpdate }: SettingsSectionProps
     localStorage.setItem(`presets_${user.id}`, JSON.stringify(updated));
   };
 
-  const [micPermission, setMicPermission] = useState<PermissionState | 'unknown'>('unknown');
-
-  useEffect(() => {
-    if (navigator.permissions && navigator.permissions.query) {
-      navigator.permissions.query({ name: 'microphone' as any }).then((result) => {
-        setMicPermission(result.state);
-        result.onchange = () => setMicPermission(result.state);
-      });
-    }
-  }, []);
-
-  const checkMicAccess = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      stream.getTracks().forEach(track => track.stop());
-      alert('Microphone access is working correctly!');
-    } catch (err: any) {
-      alert(`Microphone error: ${err.message}. Please click "Open in new tab" to fix this.`);
-    }
-  };
-
   return (
     <div className="max-w-4xl mx-auto pb-20">
       <div className="flex justify-center mb-8">
@@ -108,9 +86,10 @@ export default function SettingsSection({ user, onUpdate }: SettingsSectionProps
         {activeTab === 'appearance' ? (
           <motion.div
             key="appearance"
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 20 }}
+            transition={{ type: "spring", duration: 0.5, bounce: 0.1 }}
             className="glass-panel rounded-[2.5rem] p-10 shadow-2xl"
           >
             <div className="flex items-center gap-4 mb-10">
@@ -123,47 +102,68 @@ export default function SettingsSection({ user, onUpdate }: SettingsSectionProps
               </div>
             </div>
             
-            <div className="flex flex-wrap justify-center gap-4">
-              {themes.map((t) => (
-                <Tooltip key={t.id} content={t.tooltip} position="bottom">
-                  <button
-                    onClick={() => handleThemeChange(t.id)}
-                    className={`relative group flex items-center gap-3 px-6 py-4 rounded-2xl border-2 transition-all duration-500 overflow-hidden ${
-                      user.theme === t.id 
-                        ? 'border-indigo-600 bg-indigo-600 text-white shadow-xl shadow-indigo-500/20' 
-                        : 'border-slate-100 bg-white/50 hover:border-indigo-300 hover:bg-indigo-50/30'
-                    }`}
-                  >
-                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${
-                      user.theme === t.id ? 'bg-white/20' : t.color
-                    }`}>
-                      <t.icon className="w-4 h-4" />
-                    </div>
-                    <span className="font-black text-sm tracking-wide">{t.label}</span>
-                    
-                    {user.theme === t.id && (
-                      <motion.div
-                        layoutId="active-theme"
-                        className="absolute inset-0 bg-indigo-600 -z-10"
-                        transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                      />
-                    )}
-                    
-                    {/* Fluent Glass Hover Effect */}
-                    <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none">
-                      <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
-                    </div>
-                  </button>
-                </Tooltip>
-              ))}
+            <div className="flex flex-col items-center gap-8">
+              <div className="bg-slate-100/50 dark:bg-white/5 p-2 rounded-[3rem] flex flex-wrap justify-center gap-2 border border-slate-200/50 dark:border-white/10 backdrop-blur-2xl shadow-inner">
+                {themes.map((t) => (
+                  <Tooltip key={t.id} content={t.tooltip} position="bottom">
+                    <button
+                      onClick={() => handleThemeChange(t.id)}
+                      className={`relative group flex items-center gap-3 px-8 py-4 rounded-[2.5rem] transition-all duration-700 glass-light ${
+                        user.theme === t.id 
+                          ? 'text-white' 
+                          : 'text-slate-500 hover:text-indigo-600'
+                      }`}
+                    >
+                      {/* Active State Indicator (The "Toggle" Knob) */}
+                      <AnimatePresence>
+                        {user.theme === t.id && (
+                          <motion.div
+                            layoutId="active-theme-pill"
+                            className="absolute inset-0 bg-indigo-600 shadow-2xl shadow-indigo-500/50"
+                            transition={{ type: "spring", bounce: 0.15, duration: 0.8 }}
+                          />
+                        )}
+                      </AnimatePresence>
+
+                      <div className="relative z-10 flex items-center gap-3">
+                        <motion.div 
+                          animate={{ rotate: user.theme === t.id ? 360 : 0 }}
+                          transition={{ duration: 1, ease: "anticipate" }}
+                          className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all duration-500 ${
+                            user.theme === t.id ? 'bg-white/20 scale-110 shadow-lg' : t.color
+                          }`}
+                        >
+                          <t.icon className="w-5 h-5" />
+                        </motion.div>
+                        <span className="font-black text-xs tracking-[0.2em] uppercase">{t.label}</span>
+                      </div>
+                      
+                      {/* Fluent Glass Light Sweep Effect */}
+                      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none z-20">
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-in-out" />
+                      </div>
+                      
+                      {/* Inner Glass Border */}
+                      <div className="absolute inset-0 rounded-[2.5rem] border border-white/0 group-hover:border-white/30 transition-colors duration-500 z-10" />
+                    </button>
+                  </Tooltip>
+                ))}
+              </div>
+              
+              <div className="flex items-center gap-3 text-slate-400 font-black text-[10px] tracking-widest uppercase">
+                <div className="w-12 h-[1px] bg-slate-200 dark:bg-white/10" />
+                <span>Select Studio Environment</span>
+                <div className="w-12 h-[1px] bg-slate-200 dark:bg-white/10" />
+              </div>
             </div>
           </motion.div>
         ) : (
           <motion.div
             key="instructions"
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            transition={{ type: "spring", duration: 0.5, bounce: 0.1 }}
             className="glass-panel rounded-[2.5rem] p-10 shadow-2xl"
           >
             <div className="flex items-center gap-4 mb-8">
@@ -177,34 +177,6 @@ export default function SettingsSection({ user, onUpdate }: SettingsSectionProps
             </div>
 
             <div className="space-y-6">
-              <div className="p-6 bg-indigo-50 rounded-3xl border border-indigo-100">
-                <h4 className="font-black text-indigo-900 mb-2 flex items-center gap-2">
-                  <Mic className="w-4 h-4" />
-                  Voice Command Guide
-                </h4>
-                <p className="text-sm text-indigo-700 font-medium leading-relaxed mb-4">
-                  If you encounter "Permission Denied" errors, please click the <strong>"Open in new tab"</strong> icon at the top right of this preview. Voice recognition works best when the app is running in its own dedicated tab.
-                </p>
-                <div className="flex items-center gap-4">
-                  <button
-                    onClick={checkMicAccess}
-                    className="px-4 py-2 bg-indigo-600 text-white rounded-xl font-bold text-xs hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-500/20"
-                  >
-                    Test Microphone
-                  </button>
-                  <div className="flex items-center gap-2 text-xs font-black uppercase tracking-widest">
-                    <span className="text-slate-400">Status:</span>
-                    <span className={
-                      micPermission === 'granted' ? 'text-green-500' :
-                      micPermission === 'denied' ? 'text-red-500' :
-                      'text-amber-500'
-                    }>
-                      {micPermission}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
               <div className="flex gap-3">
                 <input
                   type="text"

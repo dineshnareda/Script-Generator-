@@ -200,66 +200,82 @@ export default function App() {
           {view === 'generator' ? (
             <motion.main
               key="generator"
-              initial={{ opacity: 0, y: 20, scale: 0.98 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -20, scale: 0.98 }}
-              transition={{ type: "spring", duration: 0.5, bounce: 0.3 }}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ type: "spring", duration: 0.6, bounce: 0.2 }}
               className="grid grid-cols-1 lg:grid-cols-12 gap-12"
             >
               {/* Form Section */}
-              <div className={`lg:col-span-5 transition-all duration-500 ${output ? 'lg:col-span-4' : 'lg:col-span-8 lg:col-start-3'}`}>
-                <div className="relative">
+              <motion.div 
+                layout
+                transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                className={`lg:col-span-5 transition-all duration-500 ${output ? 'lg:col-span-4' : 'lg:col-span-8 lg:col-start-3'}`}
+              >
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.1 }}
+                >
                   <ScriptForm 
                     onSubmit={handleGenerate} 
                     isLoading={isLoading} 
                     userId={user.id}
                   />
-                </div>
+                </motion.div>
                 
                 <AnimatePresence>
                   {error && (
                     <motion.div
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0 }}
-                      className="mt-6 p-4 bg-red-50 border border-red-100 rounded-2xl flex items-start gap-3 text-red-600"
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="mt-6 p-4 bg-red-50 border border-red-100 rounded-2xl flex items-start gap-3 text-red-600 overflow-hidden"
                     >
                       <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
                       <p className="text-sm font-medium">{error}</p>
                     </motion.div>
                   )}
                 </AnimatePresence>
-              </div>
+              </motion.div>
 
               {/* Output Section */}
               <AnimatePresence>
                 {output && (
                   <motion.div
                     id="output-section"
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: 20 }}
+                    layout
+                    initial={{ opacity: 0, x: 40, scale: 0.95 }}
+                    animate={{ opacity: 1, x: 0, scale: 1 }}
+                    exit={{ opacity: 0, x: 40, scale: 0.95 }}
+                    transition={{ type: "spring", stiffness: 200, damping: 25 }}
                     className="lg:col-span-7 lg:col-span-8"
                   >
-                    <div className="flex items-center justify-between mb-6">
-                      <h2 className="text-2xl font-bold text-slate-900">Your Viral Strategy</h2>
-                      <button
-                        onClick={handleReset}
-                        className="flex items-center gap-2 text-sm font-semibold text-slate-500 hover:text-indigo-600 transition-colors"
-                      >
-                        <RefreshCw className="w-4 h-4" />
-                        Reset
-                      </button>
-                    </div>
-                    <ScriptOutput 
-                      output={output} 
-                      onUpdate={handleUpdateOutput}
-                      onRegenerate={() => {
-                        const script = history.find(s => s.id === currentScriptId);
-                        if (script) handleRegenerateHistory(script);
-                      }}
-                    />
-                    <AdBanner adSlot="9266679211" className="mt-8" />
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.2 }}
+                    >
+                      <div className="flex items-center justify-between mb-6">
+                        <h2 className="text-2xl font-bold text-slate-900">Your Viral Strategy</h2>
+                        <button
+                          onClick={handleReset}
+                          className="flex items-center gap-2 text-sm font-semibold text-slate-500 hover:text-indigo-600 transition-colors"
+                        >
+                          <RefreshCw className="w-4 h-4" />
+                          Reset
+                        </button>
+                      </div>
+                      <ScriptOutput 
+                        output={output} 
+                        onUpdate={handleUpdateOutput}
+                        onRegenerate={() => {
+                          const script = history.find(s => s.id === currentScriptId);
+                          if (script) handleRegenerateHistory(script);
+                        }}
+                      />
+                      <AdBanner adSlot="9266679211" className="mt-8" />
+                    </motion.div>
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -267,10 +283,10 @@ export default function App() {
           ) : view === 'history' ? (
             <motion.div
               key="history"
-              initial={{ opacity: 0, y: 20, scale: 0.98 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -20, scale: 0.98 }}
-              transition={{ type: "spring", duration: 0.5, bounce: 0.3 }}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ type: "spring", duration: 0.6, bounce: 0.2 }}
               className="max-w-4xl mx-auto"
             >
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
@@ -308,10 +324,10 @@ export default function App() {
           ) : (
             <motion.div
               key="settings"
-              initial={{ opacity: 0, y: 20, scale: 0.98 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -20, scale: 0.98 }}
-              transition={{ type: "spring", duration: 0.5, bounce: 0.3 }}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ type: "spring", duration: 0.6, bounce: 0.2 }}
             >
               <SettingsSection 
                 user={user} 
