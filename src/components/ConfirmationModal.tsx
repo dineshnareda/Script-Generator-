@@ -34,9 +34,10 @@ export default function ConfirmationModal({
             className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
           />
           <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            initial={{ opacity: 0, scale: 0.95, y: 10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+            exit={{ opacity: 0, scale: 0.95, y: 10 }}
+            transition={{ duration: 0.3, ease: "easeInOut" as const }}
             className="relative bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden"
           >
             <div className="p-6">
@@ -54,13 +55,15 @@ export default function ConfirmationModal({
             </div>
             
             <div className="p-6 bg-slate-50 flex gap-3">
-              <button
+              <motion.button
+                whileTap={{ scale: 0.95 }}
                 onClick={onClose}
                 className="flex-1 px-4 py-3 rounded-xl font-bold text-slate-600 hover:bg-slate-200 transition-colors"
               >
                 {cancelText}
-              </button>
-              <button
+              </motion.button>
+              <motion.button
+                whileTap={{ scale: 0.95 }}
                 onClick={() => {
                   onConfirm();
                   onClose();
@@ -72,7 +75,7 @@ export default function ConfirmationModal({
                 }`}
               >
                 {confirmText}
-              </button>
+              </motion.button>
             </div>
           </motion.div>
         </div>

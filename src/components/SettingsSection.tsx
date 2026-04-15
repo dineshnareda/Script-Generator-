@@ -62,7 +62,8 @@ export default function SettingsSection({ user, onUpdate, onResetTutorial }: Set
     <div className="max-w-4xl mx-auto pb-20">
       <div className="flex justify-center mb-8">
         <div className="bg-white/10 backdrop-blur-md p-1.5 rounded-[2rem] shadow-xl border border-white/10 flex gap-1">
-          <button
+          <motion.button
+            whileTap={{ scale: 0.95 }}
             onClick={() => setActiveTab('appearance')}
             className={`px-8 py-3 rounded-[1.5rem] font-black text-sm transition-all flex items-center gap-2 ${
               activeTab === 'appearance' ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-500 hover:text-indigo-600'
@@ -70,8 +71,9 @@ export default function SettingsSection({ user, onUpdate, onResetTutorial }: Set
           >
             <SettingsIcon className="w-4 h-4" />
             Appearance
-          </button>
-          <button
+          </motion.button>
+          <motion.button
+            whileTap={{ scale: 0.95 }}
             onClick={() => setActiveTab('instructions')}
             className={`px-8 py-3 rounded-[1.5rem] font-black text-sm transition-all flex items-center gap-2 ${
               activeTab === 'instructions' ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-500 hover:text-indigo-600'
@@ -79,7 +81,7 @@ export default function SettingsSection({ user, onUpdate, onResetTutorial }: Set
           >
             <BookOpen className="w-4 h-4" />
             Instructions
-          </button>
+          </motion.button>
         </div>
       </div>
 
@@ -90,7 +92,7 @@ export default function SettingsSection({ user, onUpdate, onResetTutorial }: Set
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: 20 }}
-            transition={{ type: "spring", duration: 0.5, bounce: 0.1 }}
+            transition={{ duration: 0.3, ease: "easeInOut" as const }}
             className="glass-panel rounded-[2.5rem] p-10 shadow-2xl"
           >
             <div className="flex items-center gap-4 mb-10">
@@ -107,7 +109,8 @@ export default function SettingsSection({ user, onUpdate, onResetTutorial }: Set
               <div className="bg-slate-100/50 dark:bg-white/5 p-2 rounded-[3rem] flex flex-wrap justify-center gap-2 border border-slate-200/50 dark:border-white/10 backdrop-blur-2xl shadow-inner">
                 {themes.map((t) => (
                   <Tooltip key={t.id} content={t.tooltip} position="bottom">
-                    <button
+                    <motion.button
+                      whileTap={{ scale: 0.95 }}
                       onClick={() => handleThemeChange(t.id)}
                       className={`relative group flex items-center gap-3 px-8 py-4 rounded-[2.5rem] transition-all duration-700 glass-light ${
                         user.theme === t.id 
@@ -146,7 +149,7 @@ export default function SettingsSection({ user, onUpdate, onResetTutorial }: Set
                       
                       {/* Inner Glass Border */}
                       <div className="absolute inset-0 rounded-[2.5rem] border border-white/0 group-hover:border-white/30 transition-colors duration-500 z-10" />
-                    </button>
+                    </motion.button>
                   </Tooltip>
                 ))}
               </div>
@@ -164,7 +167,7 @@ export default function SettingsSection({ user, onUpdate, onResetTutorial }: Set
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -20 }}
-            transition={{ type: "spring", duration: 0.5, bounce: 0.1 }}
+            transition={{ duration: 0.3, ease: "easeInOut" as const }}
             className="glass-panel rounded-[2.5rem] p-10 shadow-2xl"
           >
             <div className="flex items-center gap-4 mb-8">
@@ -187,13 +190,14 @@ export default function SettingsSection({ user, onUpdate, onResetTutorial }: Set
                   className="flex-1 px-6 py-4 rounded-2xl border-2 border-slate-100 focus:border-indigo-500 outline-none font-bold text-slate-700 bg-white/50"
                   onKeyDown={(e) => e.key === 'Enter' && addPreset()}
                 />
-                <button
+                <motion.button
+                  whileTap={{ scale: 0.95 }}
                   onClick={addPreset}
                   className="px-6 py-4 bg-indigo-600 text-white rounded-2xl font-black hover:bg-indigo-700 transition-all flex items-center gap-2 shadow-lg shadow-indigo-500/20"
                 >
                   <Plus className="w-5 h-5" />
                   Add
-                </button>
+                </motion.button>
               </div>
 
               <div className="grid grid-cols-1 gap-3">
@@ -226,12 +230,13 @@ export default function SettingsSection({ user, onUpdate, onResetTutorial }: Set
                     <h4 className="font-black text-slate-900 mb-1">Need a Refresher?</h4>
                     <p className="text-sm text-slate-500 font-medium">Re-watch the onboarding tutorial to learn all features.</p>
                   </div>
-                  <button
+                  <motion.button
+                    whileTap={{ scale: 0.95 }}
                     onClick={onResetTutorial}
                     className="px-6 py-3 bg-white border border-slate-200 text-slate-600 rounded-xl font-bold text-sm hover:bg-slate-50 transition-all shadow-sm"
                   >
                     Reset Tutorial
-                  </button>
+                  </motion.button>
                 </div>
               </div>
             </div>

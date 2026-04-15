@@ -92,9 +92,13 @@ export default function TutorialModal({ isOpen, onClose }: TutorialModalProps) {
         />
         
         <motion.div
-          initial={{ opacity: 0, scale: 0.9, y: 20 }}
+          initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.9, y: 20 }}
+          exit={{ opacity: 0, scale: 0.95, y: 20 }}
+          transition={{ 
+            duration: 0.3,
+            ease: "easeInOut" as const
+          }}
           className="relative w-full max-w-2xl bg-white rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col md:flex-row"
         >
           {/* Close Button */}
@@ -138,7 +142,10 @@ export default function TutorialModal({ isOpen, onClose }: TutorialModalProps) {
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -20 }}
-                  transition={{ duration: 0.3 }}
+                  transition={{ 
+                    duration: 0.3,
+                    ease: "easeInOut" as const
+                  }}
                 >
                   <h2 className="text-3xl font-black text-slate-900 mb-4 leading-tight">
                     {step.title}
@@ -165,14 +172,16 @@ export default function TutorialModal({ isOpen, onClose }: TutorialModalProps) {
 
               <div className="flex gap-3">
                 {currentStep > 0 && (
-                  <button
+                  <motion.button
+                    whileTap={{ scale: 0.95 }}
                     onClick={prevStep}
                     className="p-4 rounded-2xl bg-slate-50 text-slate-400 hover:text-slate-900 transition-all"
                   >
                     <ChevronLeft className="w-6 h-6" />
-                  </button>
+                  </motion.button>
                 )}
-                <button
+                <motion.button
+                  whileTap={{ scale: 0.95 }}
                   onClick={nextStep}
                   className={`px-8 py-4 rounded-2xl font-black flex items-center gap-2 transition-all shadow-lg ${
                     currentStep === steps.length - 1
@@ -191,7 +200,7 @@ export default function TutorialModal({ isOpen, onClose }: TutorialModalProps) {
                       <ChevronRight className="w-5 h-5" />
                     </>
                   )}
-                </button>
+                </motion.button>
               </div>
             </div>
           </div>

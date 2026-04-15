@@ -56,9 +56,15 @@ export default function HistoryList({ history, onDelete, onSelect, onRegenerate 
       {history.map((item, index) => (
         <motion.div
           key={item.id}
-          initial={{ opacity: 0, y: 10, scale: 0.98 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          transition={{ delay: index * 0.05 }}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          whileTap={{ scale: 0.98 }}
+          transition={{ 
+            opacity: { duration: 0.3 },
+            y: { duration: 0.3 },
+            delay: index * 0.05,
+            scale: { duration: 0.1 }
+          }}
           className="group bg-white p-5 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all cursor-pointer relative overflow-hidden"
           onClick={() => onSelect(item)}
         >
@@ -72,22 +78,25 @@ export default function HistoryList({ history, onDelete, onSelect, onRegenerate 
               </span>
             </div>
             <div className="flex items-center gap-1 opacity-60 group-hover:opacity-100 transition-opacity">
-              <button
+              <motion.button
+                whileTap={{ scale: 0.9 }}
                 onClick={(e) => handleRegenerate(e, item)}
                 disabled={!!regeneratingId}
                 className={`p-1.5 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-indigo-600 transition-all ${regeneratingId === item.id ? 'animate-spin text-indigo-600' : ''}`}
                 title="Re-generate"
               >
                 <RefreshCw className="w-4 h-4" />
-              </button>
-              <button
+              </motion.button>
+              <motion.button
+                whileTap={{ scale: 0.9 }}
                 onClick={(e) => handleCopy(e, item.output.script, item.id)}
                 className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-indigo-600"
                 title="Copy Script"
               >
                 {copiedId === item.id ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
-              </button>
-              <button
+              </motion.button>
+              <motion.button
+                whileTap={{ scale: 0.9 }}
                 onClick={(e) => {
                   e.stopPropagation();
                   onDelete(item.id);
@@ -96,7 +105,7 @@ export default function HistoryList({ history, onDelete, onSelect, onRegenerate 
                 title="Delete"
               >
                 <Trash2 className="w-4 h-4" />
-              </button>
+              </motion.button>
             </div>
           </div>
           

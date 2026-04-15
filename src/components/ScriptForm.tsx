@@ -166,16 +166,39 @@ export default function ScriptForm({ onSubmit, isLoading, userId }: ScriptFormPr
     onSubmit(formData);
   };
 
+  const containerVariants = {
+    hidden: { opacity: 0, y: 10 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.3,
+        ease: "easeInOut" as const,
+        staggerChildren: 0.05,
+        delayChildren: 0.1
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 10 },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      transition: { duration: 0.3, ease: "easeInOut" as const }
+    }
+  };
+
   return (
     <motion.form
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.3 }}
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
       onSubmit={handleSubmit}
       className="bg-white p-8 rounded-[2.5rem] shadow-xl shadow-slate-200/50 border border-slate-100 space-y-8"
     >
       {/* Topic Input */}
-      <div className="space-y-3">
+      <motion.div variants={itemVariants} className="space-y-3">
         <div className="flex items-center justify-between">
           <label className="flex items-center gap-1.5 text-sm font-black text-slate-700 uppercase tracking-widest">
             <Sparkles className="w-4 h-4 text-indigo-500" />
@@ -236,9 +259,9 @@ export default function ScriptForm({ onSubmit, isLoading, userId }: ScriptFormPr
             className="w-full px-6 py-5 rounded-2xl border-2 border-slate-100 focus:border-indigo-500 focus:bg-white transition-all resize-none h-32 font-bold text-slate-700 outline-none bg-slate-50/50 placeholder:text-slate-300"
           />
         </div>
-      </div>
+      </motion.div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <CustomSelect
           label="Platform"
           icon={Video}
@@ -319,10 +342,10 @@ export default function ScriptForm({ onSubmit, isLoading, userId }: ScriptFormPr
           onChange={(val) => setFormData({ ...formData, scriptStructure: val as ScriptStructure })}
           tooltip="The narrative framework used to organize the content."
         />
-      </div>
+      </motion.div>
 
       {/* Target Audience */}
-      <div className="space-y-3">
+      <motion.div variants={itemVariants} className="space-y-3">
         <div className="flex items-center justify-between">
           <label className="flex items-center gap-1.5 text-sm font-black text-slate-700 uppercase tracking-widest">
             <Users className="w-4 h-4 text-indigo-500" />
@@ -343,32 +366,37 @@ export default function ScriptForm({ onSubmit, isLoading, userId }: ScriptFormPr
           placeholder="e.g., Students, Entrepreneurs, Fitness Enthusiasts..."
           className="w-full px-6 py-5 rounded-2xl border-2 border-slate-100 focus:border-indigo-500 focus:bg-white transition-all font-bold text-slate-700 outline-none bg-slate-50/50 placeholder:text-slate-300"
         />
-      </div>
+      </motion.div>
 
       {/* Submit Button */}
-      <motion.button
-        whileHover={{ scale: 1.02 }}
-        whileTap={{ scale: 0.98 }}
-        disabled={isLoading}
-        type="submit"
-        className={`w-full py-5 rounded-2xl font-black text-white shadow-xl flex items-center justify-center gap-3 transition-all ${
-          isLoading 
-            ? 'bg-slate-400 cursor-not-allowed shadow-none' 
-            : 'bg-indigo-600 hover:bg-indigo-700 shadow-indigo-500/30'
-        }`}
-      >
-        {isLoading ? (
-          <>
-            <div className="w-6 h-6 border-4 border-white/30 border-t-white rounded-full animate-spin" />
-            <span className="tracking-wide">STRATEGIZING...</span>
-          </>
-        ) : (
-          <>
-            <Send className="w-6 h-6" />
-            <span className="tracking-wide">GENERATE VIRAL SCRIPT</span>
-          </>
-        )}
-      </motion.button>
+      <motion.div variants={itemVariants}>
+        <motion.button
+          whileTap={{ scale: 0.95 }}
+          disabled={isLoading}
+          type="submit"
+          className={`w-full py-5 rounded-2xl font-black text-white shadow-xl flex items-center justify-center gap-3 transition-all duration-300 ${
+            isLoading 
+              ? 'bg-slate-400 cursor-not-allowed shadow-none' 
+              : 'bg-indigo-600 hover:bg-indigo-700 shadow-indigo-500/30'
+          }`}
+        >
+          {isLoading ? (
+            <>
+              <motion.div 
+                animate={{ rotate: 360 }}
+                transition={{ repeat: Infinity, duration: 1, ease: "linear" as const }}
+                className="w-6 h-6 border-4 border-white/30 border-t-white rounded-full" 
+              />
+              <span className="tracking-wide">STRATEGIZING...</span>
+            </>
+          ) : (
+            <>
+              <Send className="w-6 h-6" />
+              <span className="tracking-wide">GENERATE VIRAL SCRIPT</span>
+            </>
+          )}
+        </motion.button>
+      </motion.div>
     </motion.form>
   );
 }

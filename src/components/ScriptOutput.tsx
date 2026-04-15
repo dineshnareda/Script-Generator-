@@ -238,7 +238,8 @@ ${output.hashtags.join(' ')}
   };
 
   const CopyButton = ({ text, section, label }: { text: string; section: string; label?: string }) => (
-    <button
+    <motion.button
+      whileTap={{ scale: 0.95 }}
       onClick={() => copyToClipboard(text, section)}
       className={`flex items-center gap-2 px-3 py-1.5 rounded-xl transition-all font-bold text-xs ${
         copiedSection === section 
@@ -248,17 +249,37 @@ ${output.hashtags.join(' ')}
     >
       {copiedSection === section ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
       {label || (copiedSection === section ? 'Copied!' : 'Copy')}
-    </button>
+    </motion.button>
   );
 
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
+      initial="hidden"
+      animate="visible"
+      variants={{
+        hidden: { opacity: 0 },
+        visible: {
+          opacity: 1,
+          transition: {
+            staggerChildren: 0.05,
+            delayChildren: 0.1
+          }
+        }
+      }}
       className="space-y-8"
     >
       {/* Hook Section */}
-      <div className="bg-white p-6 rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100">
+      <motion.div 
+        variants={{
+          hidden: { opacity: 0, y: 10 },
+          visible: { 
+            opacity: 1, 
+            y: 0, 
+            transition: { duration: 0.3, ease: "easeInOut" as const }
+          }
+        }}
+        className="bg-white p-6 rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100"
+      >
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2 text-indigo-600 font-bold">
             <Sparkles className="w-5 h-5" />
@@ -269,10 +290,20 @@ ${output.hashtags.join(' ')}
         <p className="text-xl font-bold text-slate-800 leading-relaxed italic">
           "{output.hook}"
         </p>
-      </div>
+      </motion.div>
 
       {/* Script Section */}
-      <div className="bg-white p-6 rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100">
+      <motion.div 
+        variants={{
+          hidden: { opacity: 0, y: 10 },
+          visible: { 
+            opacity: 1, 
+            y: 0, 
+            transition: { duration: 0.3, ease: "easeInOut" as const }
+          }
+        }}
+        className="bg-white p-6 rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100"
+      >
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2 text-indigo-600 font-bold">
             <Layout className="w-5 h-5" />
@@ -282,7 +313,8 @@ ${output.hashtags.join(' ')}
             {isEditing ? (
               <>
                 <div className="flex items-center gap-1 mr-2 pr-2 border-r border-slate-200">
-                  <button
+                  <motion.button
+                    whileTap={{ scale: 0.95 }}
                     onClick={undo}
                     disabled={historyIndex === 0}
                     className={`p-1.5 rounded-lg transition-all ${
@@ -293,8 +325,9 @@ ${output.hashtags.join(' ')}
                     title="Undo (Ctrl+Z)"
                   >
                     <Undo2 className="w-4 h-4" />
-                  </button>
-                  <button
+                  </motion.button>
+                  <motion.button
+                    whileTap={{ scale: 0.95 }}
                     onClick={redo}
                     disabled={historyIndex === history.length - 1}
                     className={`p-1.5 rounded-lg transition-all ${
@@ -305,32 +338,35 @@ ${output.hashtags.join(' ')}
                     title="Redo (Ctrl+Y)"
                   >
                     <Redo2 className="w-4 h-4" />
-                  </button>
+                  </motion.button>
                 </div>
-                <button
+                <motion.button
+                  whileTap={{ scale: 0.95 }}
                   onClick={handleSave}
                   className="flex items-center gap-1 px-3 py-1.5 bg-green-500 text-white rounded-lg text-sm font-bold hover:bg-green-600 transition-colors"
                 >
                   <Save className="w-4 h-4" />
                   Save
-                </button>
-                <button
+                </motion.button>
+                <motion.button
+                  whileTap={{ scale: 0.95 }}
                   onClick={handleCancel}
                   className="flex items-center gap-1 px-3 py-1.5 bg-slate-100 text-slate-500 rounded-lg text-sm font-bold hover:bg-slate-200 transition-colors"
                 >
                   <X className="w-4 h-4" />
                   Cancel
-                </button>
+                </motion.button>
               </>
             ) : (
               <>
-                <button
-                  onClick={() => setIsEditing(true)}
-                  className="flex items-center gap-2 px-3 py-1.5 bg-slate-50 text-slate-500 rounded-xl text-xs font-bold hover:bg-indigo-50 hover:text-indigo-600 transition-all"
-                >
-                  <Edit2 className="w-3.5 h-3.5" />
-                  Edit
-                </button>
+            <motion.button
+              whileTap={{ scale: 0.95 }}
+              onClick={() => setIsEditing(true)}
+              className="flex items-center gap-2 px-3 py-1.5 bg-slate-50 text-slate-500 rounded-xl text-xs font-bold hover:bg-indigo-50 hover:text-indigo-600 transition-all"
+            >
+              <Edit2 className="w-3.5 h-3.5" />
+              Edit
+            </motion.button>
                 <CopyButton text={output.script} section="script" />
               </>
             )}
@@ -363,10 +399,20 @@ ${output.hashtags.join(' ')}
             </div>
           )}
         </div>
-      </div>
+      </motion.div>
 
       {/* Titles Section */}
-      <div className="bg-white p-6 rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100">
+      <motion.div 
+        variants={{
+          hidden: { opacity: 0, y: 10 },
+          visible: { 
+            opacity: 1, 
+            y: 0, 
+            transition: { duration: 0.3, ease: "easeInOut" as const }
+          }
+        }}
+        className="bg-white p-6 rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100"
+      >
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2 text-indigo-600 font-bold">
             <TypeIcon className="w-5 h-5" />
@@ -392,10 +438,20 @@ ${output.hashtags.join(' ')}
             </li>
           ))}
         </ul>
-      </div>
+      </motion.div>
 
       {/* CTA Section */}
-      <div className="bg-white p-6 rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100">
+      <motion.div 
+        variants={{
+          hidden: { opacity: 0, y: 10 },
+          visible: { 
+            opacity: 1, 
+            y: 0, 
+            transition: { duration: 0.3, ease: "easeInOut" as const }
+          }
+        }}
+        className="bg-white p-6 rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100"
+      >
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2 text-indigo-600 font-bold">
             <MessageCircle className="w-5 h-5" />
@@ -406,9 +462,19 @@ ${output.hashtags.join(' ')}
         <p className="text-slate-700 font-medium">
           {output.cta}
         </p>
-      </div>
+      </motion.div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <motion.div 
+        variants={{
+          hidden: { opacity: 0, y: 10 },
+          visible: { 
+            opacity: 1, 
+            y: 0, 
+            transition: { duration: 0.3, ease: "easeInOut" as const }
+          }
+        }}
+        className="grid grid-cols-1 md:grid-cols-2 gap-6"
+      >
         {/* Keywords Section */}
         <div className="bg-white p-6 rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100">
           <div className="flex items-center justify-between mb-4">
@@ -420,7 +486,8 @@ ${output.hashtags.join(' ')}
           </div>
           <div className="flex flex-wrap gap-2">
             {output.keywords.map((kw, i) => (
-              <button
+              <motion.button
+                whileTap={{ scale: 0.95 }}
                 key={i}
                 onClick={() => copyToClipboard(kw, `kw-${i}`)}
                 className={`px-3 py-1 rounded-full text-sm font-medium transition-all ${
@@ -428,7 +495,7 @@ ${output.hashtags.join(' ')}
                 }`}
               >
                 {kw}
-              </button>
+              </motion.button>
             ))}
           </div>
         </div>
@@ -444,7 +511,8 @@ ${output.hashtags.join(' ')}
           </div>
           <div className="flex flex-wrap gap-2">
             {output.hashtags.map((tag, i) => (
-              <button
+              <motion.button
+                whileTap={{ scale: 0.95 }}
                 key={i}
                 onClick={() => copyToClipboard(tag, `tag-${i}`)}
                 className={`font-bold transition-all ${
@@ -452,22 +520,23 @@ ${output.hashtags.join(' ')}
                 }`}
               >
                 {tag.startsWith('#') ? tag : `#${tag}`}
-              </button>
+              </motion.button>
             ))}
           </div>
         </div>
-      </div>
+      </motion.div>
 
-      {/* Bottom Action Bar */}
       <div className="flex flex-wrap items-center justify-center gap-4 pt-8 border-t border-slate-100">
-        <button
+        <motion.button
+          whileTap={{ scale: 0.95 }}
           onClick={onRegenerate}
           className="flex items-center gap-2 px-8 py-4 bg-slate-900 text-white rounded-2xl font-black hover:bg-slate-800 transition-all shadow-xl shadow-slate-900/20"
         >
           <RefreshCw className="w-5 h-5" />
           REGENERATE
-        </button>
-        <button
+        </motion.button>
+        <motion.button
+          whileTap={{ scale: 0.95 }}
           onClick={exportToPDF}
           disabled={isExporting}
           className={`flex items-center gap-2 px-8 py-4 rounded-2xl font-black transition-all shadow-xl ${
@@ -482,8 +551,9 @@ ${output.hashtags.join(' ')}
             <FileDown className="w-5 h-5" />
           )}
           {isExporting ? 'EXPORTING...' : 'EXPORT PDF'}
-        </button>
-        <button
+        </motion.button>
+        <motion.button
+          whileTap={{ scale: 0.95 }}
           onClick={copyAll}
           className={`flex items-center gap-2 px-8 py-4 rounded-2xl font-black transition-all shadow-xl ${
             copiedSection === 'all' 
@@ -493,14 +563,15 @@ ${output.hashtags.join(' ')}
         >
           {copiedSection === 'all' ? <Check className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
           {copiedSection === 'all' ? 'COPIED ALL!' : 'COPY ALL'}
-        </button>
-        <button
+        </motion.button>
+        <motion.button
+          whileTap={{ scale: 0.95 }}
           onClick={scrollToTop}
           className="p-4 bg-white text-slate-400 rounded-2xl border border-slate-100 hover:text-indigo-600 hover:border-indigo-100 transition-all shadow-lg"
           title="Scroll to Top"
         >
           <ArrowUp className="w-6 h-6" />
-        </button>
+        </motion.button>
       </div>
     </motion.div>
   );

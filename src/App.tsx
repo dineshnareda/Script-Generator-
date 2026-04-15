@@ -169,7 +169,7 @@ export default function App() {
   );
 
   return (
-    <div className={`min-h-screen transition-colors duration-500 ${
+    <div className={`min-h-screen transition-all duration-300 ease-in-out ${
       user.theme === 'dark' ? 'bg-slate-950 text-slate-100' : 
       user.theme === 'emerald' ? 'bg-emerald-950 text-emerald-50' : 
       user.theme === 'sunset' ? 'bg-[#2d1b2d] text-[#fff5f5]' :
@@ -213,19 +213,32 @@ export default function App() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              transition={{ type: "spring", duration: 0.6, bounce: 0.2 }}
+              transition={{ 
+                duration: 0.3,
+                ease: "easeInOut" as const
+              }}
               className="grid grid-cols-1 lg:grid-cols-12 gap-12"
             >
               {/* Form Section */}
               <motion.div 
                 layout
-                transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                className={`lg:col-span-5 transition-all duration-500 ${output ? 'lg:col-span-4' : 'lg:col-span-8 lg:col-start-3'}`}
+                transition={{ 
+                  type: "spring" as const, 
+                  stiffness: 300, 
+                  damping: 30,
+                  mass: 0.8
+                }}
+                className={`lg:col-span-5 transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] ${output ? 'lg:col-span-4' : 'lg:col-span-8 lg:col-start-3'}`}
               >
                 <motion.div
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 0.1 }}
+                  transition={{ 
+                    type: "spring" as const,
+                    stiffness: 260,
+                    damping: 20,
+                    delay: 0.1 
+                  }}
                 >
                   <ScriptForm 
                     onSubmit={handleGenerate} 
@@ -237,9 +250,14 @@ export default function App() {
                 <AnimatePresence>
                   {error && (
                     <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      exit={{ opacity: 0, height: 0 }}
+                      initial={{ opacity: 0, height: 0, y: -10 }}
+                      animate={{ opacity: 1, height: 'auto', y: 0 }}
+                      exit={{ opacity: 0, height: 0, y: -10 }}
+                      transition={{ 
+                        type: "spring" as const,
+                        stiffness: 300,
+                        damping: 25
+                      }}
                       className="mt-6 p-4 bg-red-50 border border-red-100 rounded-2xl flex items-start gap-3 text-red-600 overflow-hidden"
                     >
                       <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
@@ -255,16 +273,26 @@ export default function App() {
                   <motion.div
                     id="output-section"
                     layout
-                    initial={{ opacity: 0, x: 40, scale: 0.95 }}
+                    initial={{ opacity: 0, x: 50, scale: 0.95 }}
                     animate={{ opacity: 1, x: 0, scale: 1 }}
-                    exit={{ opacity: 0, x: 40, scale: 0.95 }}
-                    transition={{ type: "spring", stiffness: 200, damping: 25 }}
+                    exit={{ opacity: 0, x: 50, scale: 0.95 }}
+                    transition={{ 
+                      type: "spring" as const, 
+                      stiffness: 200, 
+                      damping: 25,
+                      mass: 1.2
+                    }}
                     className="lg:col-span-7 lg:col-span-8"
                   >
                     <motion.div
-                      initial={{ opacity: 0, y: 10 }}
+                      initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.2 }}
+                      transition={{ 
+                        type: "spring" as const,
+                        stiffness: 260,
+                        damping: 20,
+                        delay: 0.2 
+                      }}
                     >
                       <div className="flex items-center justify-between mb-6">
                         <h2 className="text-2xl font-bold text-slate-900">Your Viral Strategy</h2>
@@ -296,7 +324,10 @@ export default function App() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              transition={{ type: "spring", duration: 0.6, bounce: 0.2 }}
+              transition={{ 
+                duration: 0.3,
+                ease: "easeInOut" as const
+              }}
               className="max-w-4xl mx-auto"
             >
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
@@ -337,7 +368,10 @@ export default function App() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              transition={{ type: "spring", duration: 0.6, bounce: 0.2 }}
+              transition={{ 
+                duration: 0.3,
+                ease: "easeInOut" as const
+              }}
             >
               <SettingsSection 
                 user={user} 
@@ -379,7 +413,9 @@ export default function App() {
 
 function NavButton({ active, onClick, icon: Icon, label, badge }: { active: boolean, onClick: () => void, icon: any, label: string, badge?: number }) {
   return (
-    <button
+    <motion.button
+      whileTap={{ scale: 0.95 }}
+      transition={{ duration: 0.1 }}
       onClick={onClick}
       className="relative flex items-center gap-2 px-6 py-3 rounded-[1.5rem] font-black text-sm transition-all group overflow-hidden"
     >
@@ -387,13 +423,18 @@ function NavButton({ active, onClick, icon: Icon, label, badge }: { active: bool
         {active && (
           <motion.div
             layoutId="nav-active"
-            className="absolute inset-0 bg-indigo-600 shadow-lg shadow-indigo-500/30"
-            transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+            className="absolute inset-0 bg-indigo-600 shadow-lg shadow-indigo-500/40"
+            transition={{ 
+              type: "spring" as const, 
+              stiffness: 300, 
+              damping: 30, 
+              mass: 0.8 
+            }}
           />
         )}
       </AnimatePresence>
       
-      <div className={`relative z-10 flex items-center gap-2 transition-colors duration-300 ${
+      <div className={`relative z-10 flex items-center gap-2 transition-colors duration-500 ${
         active ? 'text-white' : 'text-slate-500 group-hover:text-indigo-600'
       }`}>
         <Icon className="w-4 h-4" />
@@ -406,6 +447,6 @@ function NavButton({ active, onClick, icon: Icon, label, badge }: { active: bool
           </span>
         )}
       </div>
-    </button>
+    </motion.button>
   );
 }
