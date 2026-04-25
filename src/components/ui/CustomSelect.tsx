@@ -48,7 +48,8 @@ export default function CustomSelect({ label, options, value, onChange, icon: La
         )}
       </label>
       
-      <button
+      <motion.button
+        whileTap={{ scale: 0.98 }}
         type="button"
         onClick={() => setIsOpen(!isOpen)}
         className={`w-full flex items-center justify-between px-5 py-4 rounded-2xl border-2 transition-all font-bold outline-none text-left ${
@@ -68,14 +69,15 @@ export default function CustomSelect({ label, options, value, onChange, icon: La
           <span className="text-slate-700">{selectedOption.label}</span>
         </div>
         <ChevronDown className={`w-5 h-5 text-slate-400 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
-      </button>
+      </motion.button>
 
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, y: 10, scale: 0.95 }}
+            initial={{ opacity: 0, y: 5, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 10, scale: 0.95 }}
+            exit={{ opacity: 0, y: 5, scale: 0.98 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
             className="absolute z-50 left-0 right-0 mt-2 p-2 bg-white rounded-3xl shadow-2xl border border-slate-100 overflow-hidden max-h-80 overflow-y-auto"
           >
             <motion.div className="space-y-1">

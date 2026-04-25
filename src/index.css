@@ -6,6 +6,12 @@
 }
 
 @layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply transition-colors duration-300 ease-in-out;
+  }
   .dark {
     --bg-main: #020617;
     --bg-card: rgba(15, 23, 42, 0.7);

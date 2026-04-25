@@ -16,6 +16,8 @@ import ConfirmationModal from './components/ConfirmationModal';
 import AdBanner from './components/AdBanner';
 import SettingsSection from './components/SettingsSection';
 import TutorialModal from './components/TutorialModal';
+import OfflineModal from './components/OfflineModal';
+import ErrorBoundary from './components/ErrorBoundary';
 import { ScriptInput, ScriptOutput as ScriptOutputType, SavedScript, User, AppView } from './types';
 import { generateViralScript } from './services/gemini';
 import { storage } from './lib/storage';
@@ -40,6 +42,20 @@ export default function App() {
   const [isClearModalOpen, setIsClearModalOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [isTutorialOpen, setIsTutorialOpen] = useState(false);
+  const [isOffline, setIsOffline] = useState(!window.navigator.onLine);
+
+  useEffect(() => {
+    const handleOnline = () => setIsOffline(false);
+    const handleOffline = () => setIsOffline(true);
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
 
   useEffect(() => {
     const hasSeenTutorial = localStorage.getItem('hasSeenTutorial');
@@ -169,13 +185,14 @@ export default function App() {
   );
 
   return (
-    <div className={`min-h-screen transition-all duration-300 ease-in-out ${
-      user.theme === 'dark' ? 'bg-slate-950 text-slate-100' : 
-      user.theme === 'emerald' ? 'bg-emerald-950 text-emerald-50' : 
-      user.theme === 'sunset' ? 'bg-[#2d1b2d] text-[#fff5f5]' :
-      user.theme === 'midnight' ? 'bg-[#0a0a0a] text-[#f0f9ff]' :
-      'bg-slate-50 text-slate-900'
-    }`}>
+    <ErrorBoundary>
+      <div className={`min-h-screen transition-all duration-300 ease-in-out ${
+        user.theme === 'dark' ? 'bg-slate-950 text-slate-100' : 
+        user.theme === 'emerald' ? 'bg-emerald-950 text-emerald-50' : 
+        user.theme === 'sunset' ? 'bg-[#2d1b2d] text-[#fff5f5]' :
+        user.theme === 'midnight' ? 'bg-[#0a0a0a] text-[#f0f9ff]' :
+        'bg-slate-50 text-slate-900'
+      }`}>
       <div className="container mx-auto px-4 py-8">
         <Header onOpenTutorial={() => setIsTutorialOpen(true)} />
 
@@ -210,9 +227,9 @@ export default function App() {
           {view === 'generator' ? (
             <motion.main
               key="generator"
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
+              exit={{ opacity: 0, y: -10 }}
               transition={{ 
                 duration: 0.3,
                 ease: "easeInOut" as const
@@ -321,9 +338,9 @@ export default function App() {
           ) : view === 'history' ? (
             <motion.div
               key="history"
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
+              exit={{ opacity: 0, y: -10 }}
               transition={{ 
                 duration: 0.3,
                 ease: "easeInOut" as const
@@ -365,9 +382,9 @@ export default function App() {
           ) : (
             <motion.div
               key="settings"
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
+              exit={{ opacity: 0, y: -10 }}
               transition={{ 
                 duration: 0.3,
                 ease: "easeInOut" as const
@@ -406,8 +423,17 @@ export default function App() {
           isOpen={isTutorialOpen} 
           onClose={() => setIsTutorialOpen(false)} 
         />
+
+        <OfflineModal 
+          isOpen={isOffline} 
+          onGoToSettings={() => {
+            setView('settings');
+            setIsOffline(false);
+          }} 
+        />
       </div>
     </div>
+  </ErrorBoundary>
   );
 }
 
