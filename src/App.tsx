@@ -426,10 +426,6 @@ export default function App() {
 
         <OfflineModal 
           isOpen={isOffline} 
-          onGoToSettings={() => {
-            setView('settings');
-            setIsOffline(false);
-          }} 
         />
       </div>
     </div>
